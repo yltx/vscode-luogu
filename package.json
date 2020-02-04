@@ -1,0 +1,257 @@
+{
+  "name": "vscode-luogu",
+  "displayName": "vscode-luogu",
+  "description": "Solve Luogu Problems in VSCode",
+  "icon": "resources/img/luogu-normal.png",
+  "version": "4.0.0",
+  "license": "MIT",
+  "publisher": "yltx",
+  "engines": {
+    "vscode": "^1.25.0"
+  },
+  "homepage": "https://github.com/yltx/vscode-luogu/blob/master/README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yltx/vscode-luogu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yltx/vscode-luogu/issues",
+    "email": "mvp.bxbl@gmail.com"
+  },
+  "categories": [
+    "Other",
+    "Snippets"
+  ],
+  "keywords": [
+    "luogu",
+    "algorithm",
+    "interview",
+    "OI",
+    "洛谷"
+  ],
+  "preview": true,
+  "activationEvents": [
+    "onCommand:luogu.about",
+    "onCommand:luogu.signin",
+    "onCommand:luogu.signout",
+    "onCommand:luogu.userInfo",
+    "onCommand:luogu.showProblem",
+    "onCommand:luogu.searchProblem",
+    "onCommand:luogu.submitSolution",
+    "onCommand:luogu.refreshExplorer",
+    "onView:luoguExplorer"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "luogu.signin",
+        "title": "登录洛谷账号",
+        "category": "Luogu",
+        "icon": {
+          "dark": "resources/dark/login-dark.png",
+          "light": "resources/light/login-light.png"
+        }
+      },
+      {
+        "command": "luogu.signout",
+        "title": "退出洛谷账号",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.showProblem",
+        "title": "显示题目",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.submitSolution",
+        "title": "提交当前文档代码",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.searchProblem",
+        "title": "查看题目",
+        "category": "Luogu",
+        "icon": {
+          "dark": "resources/dark/search-dark.png",
+          "light": "resources/light/search-light.png"
+        }
+      },
+      {
+        "command": "luogu.refreshExplorer",
+        "title": "刷新浏览器",
+        "category": "Luogu",
+        "icon": {
+          "dark": "resources/dark/refresh-dark.png",
+          "light": "resources/light/refresh-light.png"
+        }
+      },
+      {
+        "command": "luogu.userInfo",
+        "title": "账户信息",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.about",
+        "title": "关于",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.selectLanguage",
+        "title": "选择语言",
+        "category": "Luogu"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "luogu",
+          "title": "Luogu",
+          "icon": "resources/img/luogu-very-small.png"
+        }
+      ]
+    },
+    "views": {
+      "luogu": [
+        {
+          "id": "luoguExplorer",
+          "name": "Problems"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "luogu.signin",
+          "when": "view == luoguExplorer",
+          "group": "navigation@0"
+        },
+        {
+          "command": "luogu.searchProblem",
+          "when": "view == luoguExplorer",
+          "group": "navigation@1",
+          "icon": "resources/search.svg"
+        },
+        {
+          "command": "luogu.refreshExplorer",
+          "when": "view == luoguExplorer",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "luogu.showProblem",
+          "when": "view == luoguExplorer && viewItem == problem",
+          "group": "luogu@1"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "luogu.submitSolution",
+          "when": "explorerResourceIsFolder == false",
+          "group": "luogu@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "luogu.submitSolution",
+          "group": "luogu@1"
+        }
+      ]
+    },
+    "configuration": [
+      {
+        "title": "Luogu",
+        "properties": {
+          "luogu.defaultLanguage": {
+            "type": "string",
+            "enum": [
+              "Auto",
+              "Pascal",
+              "C",
+              "C++",
+              "C++11",
+              "C++14",
+              "C++17",
+              "Python2",
+              "Python3",
+              "Pypy2",
+              "Pypy3",
+              "Java8",
+              "Node.js",
+              "Ruby",
+              "Go",
+              "Rust",
+              "PHP7",
+              "C#Momo",
+              "VisualBasic",
+              "Haskell",
+              "Kotlin/Native",
+              "Kotlin/JVM",
+              "Scala",
+              "Perl"
+            ],
+            "default": "Auto",
+            "scope": "window",
+            "description": "Default language for solving the problems."
+          },
+          "luogu.showSelectLanguageHint": {
+            "type": "boolean",
+            "default": "true",
+            "scope": "window",
+            "description": "Show Select Language Hint When Submit"
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "rollup -c",
+    "compile": "rollup -c",
+    "watch": "rollup -c -w",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "cross-env jest -i",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "lint--fix": "npm run lint --fix"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.1",
+    "@types/fs-extra": "^5.0.4",
+    "@types/jest": "^24.0.6",
+    "@types/lodash": "^4.14.115",
+    "@types/markdown-it": "0.0.4",
+    "@types/marked": "^0.6.1",
+    "@types/node": "^7.0.43",
+    "@types/ws": "^5.1.2",
+    "concurrently": "^4.0.1",
+    "cross-env": "^5.2.0",
+    "jest": "^24.1.0",
+    "rollup": "^1.2.2",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-terser": "^4.0.4",
+    "rollup-plugin-typescript": "^1.0.0",
+    "rollup-plugin-uglify": "^6.0.2",
+    "ts-jest": "^23.10.5",
+    "ts-loader": "^5.3.3",
+    "tslint": "^5.11.0",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.2.2",
+    "typescript-eslint-parser": "^21.0.2",
+    "vscode": "^1.1.29"
+  },
+  "dependencies": {
+    "@luogu-dev/markdown-it-katex": "0.0.1",
+    "axios": "^0.18.0",
+    "axios-cookiejar-support": "^0.5.1",
+    "fs-extra": "^7.0.0",
+    "lodash": "^4.17.13",
+    "markdown-it": "^8.4.2",
+    "markdown-it-highlightjs": "^3.0.0",
+    "marked": "^0.6.1",
+    "redux": "^4.0.1",
+    "ws": "^6.0.0"
+  },
+  "__npminstall_done": false
+}
