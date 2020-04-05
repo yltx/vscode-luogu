@@ -6,6 +6,7 @@ export enum UserStatus {
 }
 
 export enum Languages {
+    'Auto' = 0,
     'Pascal' = 1,
     'C' = 2,
     'C++' = 3,
@@ -21,7 +22,15 @@ export enum Languages {
     'Rust' = 15,
     'PHP7' = 16,
     'C#' = 17,
-    'VisualBasic' = 18
+    'VisualBasic' = 18,
+    'Haskell' = 19,
+    'Kotlin/Native' = 20,
+    'Kotlin/JVM' = 21,
+    'Scala' = 22,
+    'Perl' = 23,
+    'PyPy2' = 24,
+    'PyPy3' = 25,
+    '文言' = 26
 }
 
 export enum ProblemState {
@@ -40,6 +49,15 @@ export enum ProblemState {
     'Hack Skipped' = 23
 }
 
+export const stateColor: string[] = [ 'rgb(20, 85, 143)', 'rgb(52, 152, 219)', 'rgb(250, 219, 20)', '#001277', '#001277', '#001277', '#fb6340', '#8e44ad', '', '', '', '', 'rgb(82, 196, 26)', '', 'rgb(231, 76, 60)' ];
+export enum resultState {
+    'OLE' = 3,
+    'MLE' = 4,
+    'TLE' = 5,
+    'WA' = 6,
+    'RE' = 7,
+    'AC' = 12
+}
 export interface OAuth2ResponseData {
   access_token: string;
   token_type: string;

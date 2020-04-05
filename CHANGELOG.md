@@ -1,5 +1,80 @@
 # Change Log
 
+## 4.1.7
+
+- Support to save problems to local
+
+## 4.1.6
+
+- Fix bug in saving login status
+
+## 4.1.5
+
+- Fix bug in subtasks
+  
+## 4.1.4
+
+- Fix bug
+  
+## 4.1.3
+
+- Support languages: Auto/文言/Scala/Perl/Haskell/Kotlin/PyPy2/PyPy3
+- Support to select the default language for submission
+- Fix bug
+  
+## 4.1.2
+
+- Support for fate
+- Support saving login status
+
+## 4.1.1
+
+- Fix bug
+  
+## 4.1.0
+
+- Support logout, userInfo display
+- Beautify code display
+- Fix bugs
+- Support for viewing problem translations
+- Support for copying sample input/output.
+
+## 4.0.9
+
+- Fix login bug
+
+## 4.0.8
+
+- Fix bug
+
+## 4.0.7
+
+- Beautify results display
+
+## 4.0.6
+
+- Add saving login status
+
+## 4.0.5
+
+- Update description
+
+## 4.0.4
+
+- Support to view your own record
+
+## 4.0.3
+
+- Support submit code
+
+## 4.0.2
+
+- Added status bar display
+
+## 4.0.1
+
+- Fixed bug
+
 ## 4.0.0
 
 - Rewrite API

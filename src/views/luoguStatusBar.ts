@@ -15,13 +15,13 @@ export class LuoguStatusBar implements vscode.Disposable {
   public updateStatusBar (status: UserStatus): void {
     // todo: update text content
     switch (status) {
-      case UserStatus.Login:
+      case UserStatus.SignedIn:
         this.statusBarItem.text = '洛谷已登录'
         this.statusBarItem.show()
         break
-      case UserStatus.Logout:
+      case UserStatus.SignedOut:
       default:
-        this.statusBarItem.text = '暂未登陆洛谷账户'
+        this.statusBarItem.text = '洛谷未登录'
         this.statusBarItem.show()
         break
     }

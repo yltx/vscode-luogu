@@ -3,7 +3,7 @@
   "displayName": "vscode-luogu",
   "description": "Solve Luogu Problems in VSCode",
   "icon": "resources/img/luogu-normal.png",
-  "version": "4.0.0",
+  "version": "4.1.7",
   "license": "MIT",
   "publisher": "yltx",
   "engines": {
@@ -34,11 +34,15 @@
     "onCommand:luogu.about",
     "onCommand:luogu.signin",
     "onCommand:luogu.signout",
+    "onCommand:luogu.fate",
     "onCommand:luogu.userInfo",
     "onCommand:luogu.showProblem",
     "onCommand:luogu.searchProblem",
     "onCommand:luogu.submitSolution",
     "onCommand:luogu.refreshExplorer",
+    "onCommand:luogu.selectLanguage",
+    "onCommand:luogu.save",
+    "onCommand:luogu.open",
     "onView:luoguExplorer"
   ],
   "main": "./dist/extension.js",
@@ -78,6 +82,11 @@
         }
       },
       {
+        "command": "luogu.fate",
+        "title": "打卡",
+        "category": "Luogu"
+      },
+      {
         "command": "luogu.refreshExplorer",
         "title": "刷新浏览器",
         "category": "Luogu",
@@ -98,7 +107,17 @@
       },
       {
         "command": "luogu.selectLanguage",
-        "title": "选择语言",
+        "title": "设置默认语言",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.save",
+        "title": "保存题目至本地",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.open",
+        "title": "打开本地的题目",
         "category": "Luogu"
       }
     ],
@@ -175,21 +194,22 @@
               "C++17",
               "Python2",
               "Python3",
-              "Pypy2",
-              "Pypy3",
+              "PyPy2",
+              "PyPy3",
               "Java8",
               "Node.js",
               "Ruby",
               "Go",
               "Rust",
               "PHP7",
-              "C#Momo",
+              "C#Mono",
               "VisualBasic",
               "Haskell",
               "Kotlin/Native",
               "Kotlin/JVM",
               "Scala",
-              "Perl"
+              "Perl",
+              "文言"
             ],
             "default": "Auto",
             "scope": "window",

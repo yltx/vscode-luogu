@@ -1,6 +1,6 @@
 export interface IAPIProblem {
-  StringPID: string
-  Tags: Tag[]
+  pid: string
+  tags: Tag[]
   Type: number
   Sample: [string[]]
   InputFormat: string
@@ -73,23 +73,23 @@ export class Problem {
   public translation?: string
 
   public constructor (
-    fields?: IAPIProblem
+    fields?: any
   ) {
     if (!fields) {
       return
     }
-    this.stringPID = fields.StringPID
-    this.tags = fields.Tags
-    this.type = fields.Type
-    this.sample = fields.Sample
-    this.inputFormat = fields.InputFormat
-    this.outputFormat = fields.OutputFormat
-    this.name = fields.Name
-    this.hint = fields.Hint
-    this.flag = fields.Flag
-    this.description = fields.Description
-    this.background = fields.Background
-    this.translation = fields.Translation
+    this.stringPID = fields.pid
+    this.tags = fields.tags
+    this.type = fields.type
+    this.sample = fields.samples
+    this.inputFormat = fields.inputFormat
+    this.outputFormat = fields.outputFormat
+    this.name = fields.title
+    this.hint = fields.hint
+    this.flag = fields.flag
+    this.description = fields.description
+    this.background = fields.background
+    this.translation = fields.translation
   }
 
   toHTML (): string {
@@ -137,9 +137,11 @@ export class Problem {
 
     let sample = ''
     this.sample.forEach((array, index) => {
-      sample += `输入${index + 1} : \n \`\`\` \n ${array[0]} \n \`\`\` \n 输出${index + 1} : \n \`\`\` \n ${array[1]} \n \`\`\` \n`
+      sample += `输入${index + 1} : \n \`\`\` \n ${array[0][array[0].length - 1] === '\n' ? array[0] : array[0] + '\n'} \n \`\`\` \n 输出${index + 1} : \n \`\`\` \n ${array[1][array[1].length - 1] === '\n' ? array[1] : array[1] + '\n'} \n \`\`\` \n`
     })
-    return ` # ${this.name}| [${this.stringPID}](https://www.luogu.org/problemnew/show/${this.stringPID}) \n \n ${this.translation || ''} \n \n ## 题目描述 \n \n ${this.background} \n \n ${this.description} \n \n ## 输入输出格式 \n \n **输入格式** \n \n ${this.inputFormat} \n \n **输出格式** \n \n ${this.outputFormat} \n \n ## 输入输出样例 \n \n ${sample} \n \n ## 说明 \n \n ${this.hint} \n`
+    // return ` # ${this.name}| [${this.stringPID}](https://www.luogu.org/problem/${this.stringPID}) \n \n ${this.translation || ''} \n \n ## 题目描述 \n \n ${this.background} \n \n ${this.description} \n \n ## 输入输出格式 \n \n **输入格式** \n \n ${this.inputFormat} \n \n **输出格式** \n \n ${this.outputFormat} \n \n ## 输入输出样例 \n \n $$<textarea id="copy">${sample}</textarea><button type="button" onclick="copyData()" class="btn btn-small">复制</button> \n \n ## 说明 \n \n ${this.hint} \n`
+    return ` # ${this.name}| [${this.stringPID}](https://www.luogu.org/problem/${this.stringPID}) \n \n ${this.translation ? '## 题意翻译 \n \n ' + this.translation : ''} \n \n ${this.background ? '## 题目背景 \n \n ' + this.background + ' \n \n ' : ''} ## 题目描述 \n \n ${this.description} \n \n ## 输入输出格式 \n \n **输入格式** \n \n ${this.inputFormat} \n \n **输出格式** \n \n ${this.outputFormat} \n \n ## 输入输出样例 \n \n ${sample} \n \n ## 说明/提示 \n \n ${this.hint} \n`
+
   }
 }
 

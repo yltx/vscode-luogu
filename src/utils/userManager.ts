@@ -21,10 +21,10 @@ class UserManager extends EventEmitter {
   constructor () {
     super()
     this.on('login', () => {
-      luoguStatusBar.updateStatusBar(UserStatus.Login)
+      luoguStatusBar.updateStatusBar(UserStatus.SignedIn)
     })
     this.on('logout', () => {
-      luoguStatusBar.updateStatusBar(UserStatus.Logout)
+      luoguStatusBar.updateStatusBar(UserStatus.SignedOut)
     })
     try {
       this.settings = JSON.parse(readFileSync(SETTINGS_PATH, { encoding: 'utf-8' }))

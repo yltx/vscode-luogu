@@ -7,22 +7,32 @@ export enum UserStatus {
 }
 
 export enum Languages {
-    'Pascal' = 1,
-    'C' = 2,
-    'C++' = 3,
-    'C++11' = 4,
-    'C++14' = 11,
-    'C++17' = 12,
-    'Python2' = 6,
-    'Python3' = 7,
-    'Java8' = 8,
-    'Node.js' = 9,
-    'GO' = 14,
-    'Ruby' = 13,
-    'Rust' = 15,
-    'PHP7' = 16,
-    'C#' = 17,
-    'VisualBasic' = 18
+  'Pascal' = 1,
+  'C' = 2,
+  'C++' = 3,
+  'C++11' = 4,
+  '提交答案' = 5,
+  'Python 2' = 6,
+  'Python 3' = 7,
+  'Java 8' = 8,
+  'Node v8.9' = 9,
+  'Shell' = 10,
+  'C++14' = 11,
+  'C++17' = 12,
+  'Ruby' = 13,
+  'Go' = 14,
+  'Rust' = 15,
+  'PHP 7' = 16,
+  'C# Mono' = 17,
+  'Visual Basic Mono' = 18,
+  'Haskell' = 19,
+  'Kotlin/Native' = 20,
+  'Kotlin/JVM' = 21,
+  'Scala' = 22,
+  'Perl' = 23,
+  'PyPy 2' = 24,
+  'PyPy 3' = 25,
+  '文言' = 26
 }
 
 export enum ProblemState {

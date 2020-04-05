@@ -14,11 +14,11 @@ const generateHTML = (imageEncoded: string) => `
   <body style="padding-top: 64px;">
     <img id="cap" src="data:image/jpeg;base64,${imageEncoded}">
     <br/>
-    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">  
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
     <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <typescript src="../../../utils/api.ts"></typescript>
-    <button type="button" onclick="document.getElementById("demo").innerHTML = "data:image/jpeg;base64,${imageEncoded}"" class="btn btn-small">更换验证码</button>
+    <button type="button" onclick="document.getElementById(\"cap\").innerHTML = \"data:image/jpeg;base64,${imageEncoded}\"" class="btn btn-small">更换验证码</button>
   </body>
 </html>`
 

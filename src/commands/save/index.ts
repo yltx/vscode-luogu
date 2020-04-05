@@ -1,10 +1,13 @@
+import * as os from 'os'
+import * as path from 'path'
+import * as fs from 'fs'
 import * as vscode from 'vscode'
-// @ts-ignore
-import md from '../../utils/markdown'
 import SuperCommand from '../SuperCommand'
+import md from '../../utils/markdown'
 import { searchProblem } from '../../utils/api'
 import { DialogType, promptForOpenOutputChannel } from '../../utils/uiUtils'
 import Problem from '../../model/Problem'
+exports.luoguProblemPath = path.join(os.homedir(), '.luoguProblems')
 
 const generateHTML = (problem: Problem) => `
 <!DOCTYPE html>
@@ -97,7 +100,7 @@ ${md.render(problem.toMarkDown())}
 </html>`
 
 export default new SuperCommand({
-  onCommand: 'searchProblem',
+  onCommand: 'save',
   handle: async () => {
     const pid = await vscode.window.showInputBox({
       placeHolder: '输入题号'
@@ -110,9 +113,27 @@ export default new SuperCommand({
       console.log(res)
       return res
     }).then(res => new Problem(res))
-    const panel = vscode.window.createWebviewPanel(problem.stringPID, problem.name, vscode.ViewColumn.Two, { enableScripts: true, retainContextWhenHidden: true })
     let html = generateHTML(problem)
-    console.log(html)
-    panel.webview.html = html
+    const filename = pid + '.html'
+    exports.luoguProblems = path.join(exports.luoguProblemPath, filename)
+    fs.exists(exports.luoguProblemPath, async function (exists) {
+      if (!exists) {
+        fs.mkdir(exports.luoguProblemPath, function (err) {
+          if (err) {
+            vscode.window.showErrorMessage('创建路径失败')
+            console.log(err)
+            throw (err)
+          }
+        })
+      }
+      fs.writeFile(exports.luoguProblems, html, function (err) {
+        if (err) {
+          vscode.window.showErrorMessage('保存失败')
+          console.log(err)
+          throw (err)
+        }
+        vscode.window.showInformationMessage('保存成功\n存储路径：' + exports.luoguProblems)
+      })
+    })
   }
 })
