@@ -1,25 +1,24 @@
 import SuperCommand from '../SuperCommand'
-import { UserStatus } from '../../utils/shared'
-import { fetchHomepage } from '../../utils/api'
+import { UserStatus } from '@/utils/shared'
+import { fetchHomepage } from '@/utils/api'
 import * as vscode from 'vscode'
-import * as fs from 'fs'
+import luoguStatusBar from '@/views/luoguStatusBar'
 
-export function getStatus (): string {
-  return fs.existsSync(exports.luoguJSONPath) ? '1' : '2';
-}
 export default new SuperCommand({
   onCommand: 'userInfo',
   handle: async () => {
-    if (getStatus() === UserStatus.SignedOut.toString()) {
-      vscode.window.showErrorMessage('未登录');
-      return;
+    while (!exports.init) { continue; }
+    try {
+      const data = await fetchHomepage();
+      if (data.currentUser === undefined) {
+        vscode.window.showErrorMessage('未登录');
+        luoguStatusBar.updateStatusBar(UserStatus.SignedOut)
+        return;
+      }
+      vscode.window.showInformationMessage(data.currentUser.name);
+    } catch (err) {
+      vscode.window.showErrorMessage('获取登录信息失败');
+      vscode.window.showErrorMessage(err.toString());
     }
-    let data = await fetchHomepage();
-    console.log(data);
-    if (data.currentUser === undefined) {
-      vscode.window.showErrorMessage('未登录');
-      return;
-    }
-    vscode.window.showInformationMessage(data.currentUser.name);
   }
 })

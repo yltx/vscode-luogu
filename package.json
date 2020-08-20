@@ -3,7 +3,7 @@
   "displayName": "vscode-luogu",
   "description": "Solve Luogu Problems in VSCode",
   "icon": "resources/img/luogu-normal.png",
-  "version": "4.1.7",
+  "version": "4.4.9",
   "license": "MIT",
   "publisher": "yltx",
   "engines": {
@@ -31,19 +31,7 @@
   ],
   "preview": true,
   "activationEvents": [
-    "onCommand:luogu.about",
-    "onCommand:luogu.signin",
-    "onCommand:luogu.signout",
-    "onCommand:luogu.fate",
-    "onCommand:luogu.userInfo",
-    "onCommand:luogu.showProblem",
-    "onCommand:luogu.searchProblem",
-    "onCommand:luogu.submitSolution",
-    "onCommand:luogu.refreshExplorer",
-    "onCommand:luogu.selectLanguage",
-    "onCommand:luogu.save",
-    "onCommand:luogu.open",
-    "onView:luoguExplorer"
+    "*"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -63,11 +51,6 @@
         "category": "Luogu"
       },
       {
-        "command": "luogu.showProblem",
-        "title": "显示题目",
-        "category": "Luogu"
-      },
-      {
         "command": "luogu.submitSolution",
         "title": "提交当前文档代码",
         "category": "Luogu"
@@ -82,13 +65,22 @@
         }
       },
       {
+        "command": "luogu.solution",
+        "title": "查看题解",
+        "category": "Luogu",
+        "icon": {
+          "dark": "resources/dark/search-dark.png",
+          "light": "resources/light/search-light.png"
+        }
+      },
+      {
         "command": "luogu.fate",
         "title": "打卡",
         "category": "Luogu"
       },
       {
-        "command": "luogu.refreshExplorer",
-        "title": "刷新浏览器",
+        "command": "luogu.benben",
+        "title": "犇犇",
         "category": "Luogu",
         "icon": {
           "dark": "resources/dark/refresh-dark.png",
@@ -117,8 +109,81 @@
       },
       {
         "command": "luogu.open",
-        "title": "打开本地的题目",
+        "title": "查看本地保存题目",
         "category": "Luogu"
+      },
+      {
+        "command": "luogu.lastRecord",
+        "title": "查看最近一次评测",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.cookieslogin",
+        "title": "使用cookie登录",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.contest",
+        "title": "查看比赛",
+        "category": "Luogu"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "luogu.signin",
+        "key": "Ctrl+Alt+G L"
+      },
+      {
+        "command": "luogu.signout",
+        "key": "Ctrl+Alt+G Ctrl+Alt+O"
+      },
+      {
+        "command": "luogu.searchProblem",
+        "key": "Ctrl+Alt+G P"
+      },
+      {
+        "command": "luogu.submitSolution",
+        "key": "Ctrl+Alt+G S"
+      },
+      {
+        "command": "luogu.fate",
+        "key": "Ctrl+Alt+G F"
+      },
+      {
+        "command": "luogu.benben",
+        "key": "Ctrl+Alt+G B"
+      },
+      {
+        "command": "luogu.userInfo",
+        "key": "Ctrl+Alt+G U"
+      },
+      {
+        "command": "luogu.about",
+        "key": "Ctrl+Alt+G A"
+      },
+      {
+        "command": "luogu.selectLanguage",
+        "key": "Ctrl+Alt+G Ctrl+Alt+S"
+      },
+      {
+        "command": "luogu.save",
+        "key": "Ctrl+Alt+G V"
+      },
+      {
+        "command": "luogu.open",
+        "key": "Ctrl+Alt+G O"
+      },
+      {
+        "command": "luogu.lastRecord",
+        "key": "Ctrl+Alt+G R"
+      },
+      {
+        "command": "luogu.cookieslogin",
+        "key": "Ctrl+Alt+G Ctrl+Alt+C"
+      },
+      {
+        "command": "luogu.contest",
+        "key": "Ctrl+Alt+G C"
       }
     ],
     "viewsContainers": {
@@ -152,16 +217,9 @@
           "icon": "resources/search.svg"
         },
         {
-          "command": "luogu.refreshExplorer",
+          "command": "luogu.benben",
           "when": "view == luoguExplorer",
           "group": "navigation@2"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "luogu.showProblem",
-          "when": "view == luoguExplorer && viewItem == problem",
-          "group": "luogu@1"
         }
       ],
       "explorer/context": [
@@ -219,7 +277,13 @@
             "type": "boolean",
             "default": "true",
             "scope": "window",
-            "description": "Show Select Language Hint When Submit"
+            "description": "Show select language hint when submit."
+          },
+          "luogu.effectiveDuration": {
+            "type": "integer",
+            "default": "1",
+            "scope": "window",
+            "description": "Effective duration for problem show. (days)"
           }
         }
       }
@@ -229,7 +293,6 @@
     "vscode:prepublish": "rollup -c",
     "compile": "rollup -c",
     "watch": "rollup -c -w",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "cross-env jest -i",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "lint--fix": "npm run lint --fix"
@@ -242,6 +305,9 @@
     "@types/markdown-it": "0.0.4",
     "@types/marked": "^0.6.1",
     "@types/node": "^7.0.43",
+    "@types/request": "^2.48.4",
+    "@types/tough-cookie": "^4.0.0",
+    "@types/vscode": "^1.25.0",
     "@types/ws": "^5.1.2",
     "concurrently": "^4.0.1",
     "cross-env": "^5.2.0",
@@ -249,7 +315,7 @@
     "rollup": "^1.2.2",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-json": "^3.1.0",
-    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-node-resolve": "^4.2.4",
     "rollup-plugin-terser": "^4.0.4",
     "rollup-plugin-typescript": "^1.0.0",
     "rollup-plugin-uglify": "^6.0.2",
@@ -259,7 +325,7 @@
     "tslint-config-standard": "^8.0.1",
     "typescript": "^3.2.2",
     "typescript-eslint-parser": "^21.0.2",
-    "vscode": "^1.1.29"
+    "vscode-test": "^1.1.29"
   },
   "dependencies": {
     "@luogu-dev/markdown-it-katex": "0.0.1",
@@ -268,7 +334,7 @@
     "fs-extra": "^7.0.0",
     "lodash": "^4.17.13",
     "markdown-it": "^8.4.2",
-    "markdown-it-highlightjs": "^3.0.0",
+    "markdown-it-highlightjs": "^3.1.0",
     "marked": "^0.6.1",
     "redux": "^4.0.1",
     "ws": "^6.0.0"

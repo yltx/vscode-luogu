@@ -1,26 +1,31 @@
 import SuperCommand from '../SuperCommand'
-import { getFate } from '../../utils/api'
-import { UserStatus } from '../../utils/shared'
+import { getFate, getStatus } from '@/utils/api'
+import { UserStatus } from '@/utils/shared'
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 
-export function getStatus (): string {
-  return fs.existsSync(exports.luoguJSONPath) ? '1' : '2';
-}
 export default new SuperCommand({
   onCommand: 'fate',
   handle: async () => {
-    if (getStatus() === UserStatus.SignedOut.toString()) {
-      vscode.window.showErrorMessage('您没有登录')
+    while (!exports.init) { continue; }
+    try {
+      if (await getStatus() === UserStatus.SignedOut.toString()) {
+        vscode.window.showErrorMessage('未登录');
+        return;
+      }
+    } catch (err) {
+      console.error(err)
+      vscode.window.showErrorMessage(err.toString());
       return;
     }
-    let data = await getFate();
-    if (data.code !== 201 && data.code !== 200) {
-      vscode.window.showErrorMessage('打卡失败')
-    } else {
-      if (data.message === '') {
-        vscode.window.showInformationMessage('打卡成功')
-        const css = `
+    try {
+      let data = await getFate();
+      if (data.code !== 201 && data.code !== 200) {
+        vscode.window.showErrorMessage('打卡失败')
+      } else {
+        if (data.message === '') {
+          // vscode.window.showInformationMessage('打卡成功')
+          const css = `
         .lg-punch .lg-punch-result {
           display: inline-block;
           font-size: 50px;
@@ -46,15 +51,6 @@ export default new SuperCommand({
           font-size: 20px;
           color: #7f7f7f;
         }
-        /*
-        @media only screen and (min-width: 641px)
-        [class*=am-u-] {
-          padding-left: 1rem;
-          padding-right: 1rem;
-        }
-        .am-u-sm-6 {
-          width: 50%;
-        }*/
         .lg-bold {
           font-weight: bold;
           font-size: 30px;
@@ -68,16 +64,11 @@ export default new SuperCommand({
         strong {
           color: #515151;
         }
-        /*@media only screen and (min-width: 641px)
-        .am-u-md-4 {
-            width: 33.33333333%;
-        }*/
         .am-text-center {
           text-align: center!important;
         }
         `
-        data.more.html = `<div class="am-u-md-4 lg-punch am-text-center">` + data.html + `</div>`
-        let html = `<!DOCTYPE html>
+          let html = `<!DOCTYPE html>
         <html>
         <head>
           <meta charset="UTF-8">
@@ -85,18 +76,24 @@ export default new SuperCommand({
           <style> ${css} </style>
         </head>
         <body>
+        <div class="am-u-md-4 lg-punch am-text-center">
         ${data.more.html}
+        </div>
         </body>
         </html>`;
 
-        let pannel = vscode.window.createWebviewPanel(``, `今日运势`, vscode.ViewColumn.Two);
-        let pannelClosed = false;
-        pannel.onDidDispose(() => pannelClosed = true)
-        pannel.webview.html = html;
-      } else {
-        vscode.window.showInformationMessage(data.message)
+          let pannel = vscode.window.createWebviewPanel('', `今日运势`, vscode.ViewColumn.Two);
+          // let pannelClosed = false;
+          // pannel.onDidDispose(() => pannelClosed = true)
+          pannel.webview.html = html;
+        } else {
+          vscode.window.showInformationMessage(data.message)
+        }
+        // console.log(data)
       }
-      console.log(data)
+    } catch (err) {
+      // vscode.window.showErrorMessage('打卡时出现错误')
+      vscode.window.showErrorMessage(err)
     }
   }
 })

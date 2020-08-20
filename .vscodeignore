@@ -1,0 +1,14 @@
+.vscode/**
+.vscode-test/**
+dist/test/**
+dist/**/*.map
+src/**/*
+.gitignore
+tsconfig.json
+tslint.json
+.idea
+test.sh
+tests/**/*
+*.zip
+test.*
+tempCodeRunnerFile.ts

@@ -2,11 +2,12 @@ export const USER_UPDATE = Symbol('user-update')
 'use strict';
 
 export enum UserStatus {
-    SignedIn = 1,
-    SignedOut = 2
+  SignedIn = 1,
+  SignedOut = 2
 }
 
 export enum Languages {
+  'Auto' = 0,
   'Pascal' = 1,
   'C' = 2,
   'C++' = 3,
@@ -30,25 +31,25 @@ export enum Languages {
   'Kotlin/JVM' = 21,
   'Scala' = 22,
   'Perl' = 23,
-  'PyPy 2' = 24,
-  'PyPy 3' = 25,
+  'PyPy2' = 24,
+  'PyPy3' = 25,
   '文言' = 26
 }
 
 export enum ProblemState {
-    'Waiting' = 0,
-    'Judging' = 1,
-    'Compile Error' = 2,
-    'OLE' = 3,
-    'MLE' = 4,
-    'TLE' = 5,
-    'WA' = 6,
-    'RE' = 7,
-    'Accepted' = 12,
-    'Unaccepted' = 14,
-    'Hack Success' = 21,
-    'Hack Failure' = 22,
-    'Hack Skipped' = 23
+  'Waiting' = 0,
+  'Judging' = 1,
+  'Compile Error' = 2,
+  'OLE' = 3,
+  'MLE' = 4,
+  'TLE' = 5,
+  'WA' = 6,
+  'RE' = 7,
+  'Accepted' = 12,
+  'Unaccepted' = 14,
+  'Hack Success' = 21,
+  'Hack Failure' = 22,
+  'Hack Skipped' = 23
 }
 
 export interface OAuth2ResponseData {
@@ -58,11 +59,3 @@ export interface OAuth2ResponseData {
   refresh_token?: string;
   scope?: Array<string>;
 }
-
-export const OAuthInfo = {
-  grant_type: 'password',
-  clientID: 'luogu-vscode',
-  client_secret: 'HasHidden',
-  accessTokenUri: 'https://www.luogu.org/api/OAuth2/accessToken',
-  authorizationUri: 'https://www.luogu.org/api/OAuth2/authorize'
-};

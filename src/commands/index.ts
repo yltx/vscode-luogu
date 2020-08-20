@@ -4,7 +4,6 @@ import debug from '../utils/debug'
 import Search from './search'
 import Submit from './submit'
 import About from './about'
-import { isMaster } from 'cluster'
 import Login from './login'
 import Logout from './logout'
 import userInfo from './userinfo'
@@ -12,8 +11,12 @@ import Fate from './fate'
 import selectLanguage from './selectLanguage'
 import Save from './save'
 import Open from './open'
-const commands = [About, Login, Search, Submit, Logout, userInfo, Fate, selectLanguage, Save, Open]
-
+import BenBen from './benben'
+import lastRecord from './lastRecord'
+import cookielogin from './cookieslogin'
+import solution from './solution'
+import contest from './contest'
+const commands = [About, Login, Search, Submit, Logout, userInfo, Fate, selectLanguage, Save, Open, BenBen, lastRecord, cookielogin, solution, contest]
 export { commands }
 
 export function registerCommands(context: vscode.ExtensionContext) {

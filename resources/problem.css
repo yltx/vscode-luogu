@@ -1,0 +1,32 @@
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  display: block;
+  width: 100%;
+  overflow: auto;
+  word-break: keep-all;
+  margin: 10px;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 6px 13px;
+}
+blockquote {
+  padding: 10px 20px;
+  margin: 0 0 20px;
+  border-left: 5px solid #eee;
+}
+a:hover {
+  color: #0056b3;
+}
+a {
+  transition: all .15s;
+  color: #ac90f5;
+}
+a {
+  color: #3498db;
+  text-decoration: none;
+}
+a {
+  background-color: transparent;
+}

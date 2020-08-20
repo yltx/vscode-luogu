@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { luoguChannel } from '../views/luoguChannel'
+import { luoguChannel } from '@/views/luoguChannel'
 
 export namespace DialogOptions {
   export const open: vscode.MessageItem = { title: '重试' }
@@ -26,7 +26,7 @@ export async function promptForOpenOutputChannel (message: string, type: DialogT
   }
 
   if (result === DialogOptions.open) {
-    channel.show()
+    // channel.show()
   }
 }
 export async function promptForOpenOutputChannelWithResult (message: string, type: DialogType = DialogType.info, channel: vscode.OutputChannel = luoguChannel): Promise<vscode.MessageItem | undefined> {
@@ -46,7 +46,7 @@ export async function promptForOpenOutputChannelWithResult (message: string, typ
   }
 
   if (result === DialogOptions.open) {
-    channel.show()
+    // channel.show()
   }
   return result;
 }

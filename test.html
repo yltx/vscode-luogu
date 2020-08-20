@@ -1,0 +1,19 @@
+<div data-v-6e56e2aa="" class="border table" style="display: none" id="showranklist"> 
+                <div data-v-6e56e2aa="" class="header-wrap"> 
+                    <div data-v-239a177d="" data-v-6e56e2aa="" class="header"> 
+                        <span id="ranklist"> </span> 
+                    </div> 
+                </div> 
+            </div> 
+            <script> 
+            function displayranklist(ranklist) { 
+              var i = 0 
+    "          var ans = '<table>\<tr>\<th>名 
+次</th>\<th>参赛者</th>\<th>总分</th>\"               for (;i < 4; i) { 
+    "            ans = <th>  String.fromCharCode(65  i)  </th>\" 
+              } 
+    "          ans = </tr>\</table>\"   
+              return ans 
+            } 
+            document.getElementById("showranklist").innerHTML = displayranklist([]) 
+            </script>

@@ -1,7 +1,8 @@
-import { debug } from './debug'
-import { captcha } from './api'
+import { debug } from '@/utils/debug'
+import { captcha, getResourceFilePath } from '@/utils/api'
+import * as path from 'path'
 import * as vscode from 'vscode'
-import { promptForOpenOutputChannel, DialogType } from './uiUtils'
+import { promptForOpenOutputChannel, DialogType } from '@/utils/uiUtils'
 
 const generateHTML = (imageEncoded: string) => `
 <!DOCTYPE html>
@@ -14,10 +15,9 @@ const generateHTML = (imageEncoded: string) => `
   <body style="padding-top: 64px;">
     <img id="cap" src="data:image/jpeg;base64,${imageEncoded}">
     <br/>
-    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
-    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <typescript src="../../../utils/api.ts"></typescript>
+    <link rel="stylesheet" href="${getResourceFilePath('bootstrap.min.css')}">
+    <script src="${getResourceFilePath('jquery.min.js')}"></script>
+    <script src="${getResourceFilePath('bootstrap.min.js')}"></script>
     <button type="button" onclick="document.getElementById(\"cap\").innerHTML = \"data:image/jpeg;base64,${imageEncoded}\"" class="btn btn-small">更换验证码</button>
   </body>
 </html>`
@@ -33,10 +33,14 @@ export async function getUserCaptcha () {
     const panel = vscode.window.createWebviewPanel('Luogu Captcha', 'Captcha', {
       viewColumn: vscode.ViewColumn.One,
       preserveFocus: true
+    }, {
+      enableScripts: true,
+      localResourceRoots: [vscode.Uri.file(exports.resourcesPath)]
     })
     panel.webview.html = generateHTML(image.toString('base64'))
     captchaText = await vscode.window.showInputBox({
-      placeHolder: '输入验证码'
+      placeHolder: '输入验证码',
+      ignoreFocusOut: true
     }).then(res => res ? res : null)
     panel.dispose()
   }

@@ -33,24 +33,24 @@ export class Tag {
     this.parentId = fields.ParentId
   }
 
-  setID (Id: number) {
-    this.id = Id
+  setID (id: number) {
+    this.id = id
   }
 
   getID () {
     return this.id
   }
 
-  setName (Name: string) {
-    this.name = Name
+  setName (name: string) {
+    this.name = name
   }
 
   getName () {
     return this.name
   }
 
-  setParentID (ParentId: number) {
-    this.parentId = ParentId
+  setParentID (parentId: number) {
+    this.parentId = parentId
   }
 
   getParentID () {
@@ -133,7 +133,6 @@ export class Problem {
   }
 
   toMarkDown (): string {
-    console.log(this.translation)
 
     let sample = ''
     this.sample.forEach((array, index) => {

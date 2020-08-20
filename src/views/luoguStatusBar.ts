@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
-import { UserStatus } from '../utils/shared'
-import debug from '../utils/debug'
+import { UserStatus } from '@/utils/shared'
+import debug from '@/utils/debug'
 
 export class LuoguStatusBar implements vscode.Disposable {
   private readonly statusBarItem: vscode.StatusBarItem

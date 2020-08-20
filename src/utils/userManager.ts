@@ -2,9 +2,9 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { EventEmitter } from 'events'
 import { has } from 'lodash'
-import debug from './debug'
-import luoguStatusBar from '../views/luoguStatusBar'
-import { UserStatus } from './shared'
+import debug from '@/utils/debug'
+import luoguStatusBar from '@/views/luoguStatusBar'
+import { UserStatus } from '@/utils/shared'
 
 export const SETTINGS_PATH = resolve('.luogu', 'settings.json')
 
