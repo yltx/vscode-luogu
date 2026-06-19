@@ -66,7 +66,7 @@ export class TrainDetals {
   } | null;
 
   public constructor(fields: ProblemSetDetails) {
-    this.title = (fields as any).name ?? fields.title;
+    this.title = fields.name;
     this.problemCount = fields.problemCount;
     this.problemlist = fields.problems;
     this.description = fields.description;

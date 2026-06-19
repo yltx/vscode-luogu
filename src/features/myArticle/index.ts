@@ -69,8 +69,8 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           solutionFor: solutionFor,
           category: x,
           status: res.status,
-          content: res.content,
-          top: res.top
+          content: res.content ?? '',
+          top: res.top ?? 0
         }).catch(e => {
           if (isAxiosError(e) && e.response)
             vscode.window.showErrorMessage(e.response.data.errorMessage);
@@ -94,8 +94,8 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           solutionFor: res.solutionFor?.pid ?? null,
           category: res.category,
           status: choice === '显示' ? 2 : 1,
-          content: res.content,
-          top: res.top
+          content: res.content ?? '',
+          top: res.top ?? 0
         }).catch(e => {
           if (isAxiosError(e) && e.response)
             vscode.window.showErrorMessage(e.response.data.errorMessage);
@@ -115,8 +115,8 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           solutionFor: res.solutionFor?.pid ?? null,
           category: res.category,
           status: res.status,
-          content: res.content,
-          top: res.top
+          content: res.content ?? '',
+          top: res.top ?? 0
         }).catch(processAxiosError('重命名文章'));
         view.refresh();
       }
@@ -196,8 +196,8 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           solutionFor: problem || null,
           category: res.category,
           status: res.status,
-          content: res.content,
-          top: res.top
+          content: res.content ?? '',
+          top: res.top ?? 0
         }).catch(processAxiosError('设置关联题目'));
         view.refresh();
       }
@@ -210,7 +210,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           title: '置顶量',
           ignoreFocusOut: true,
           placeHolder: '0 到 255 之间的整数。越高的值越靠前。',
-          value: res.top.toString(),
+          value: (res.top ?? 0).toString(),
           validateInput: value => {
             if (!/^\d+$/.test(value)) return '请输入 0 到 255 之间的整数';
             const num = parseInt(value);
@@ -224,7 +224,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           solutionFor: res.solutionFor?.pid ?? null,
           category: res.category,
           status: res.status,
-          content: res.content,
+          content: res.content ?? '',
           top: parseInt(top)
         }).catch(processAxiosError('设置置顶量'));
         view.refresh();

@@ -44,7 +44,7 @@ export default class myArticleFsProvider
       const res = (await getArticle(uri.query)).data.article;
       return {
         type: vscode.FileType.File,
-        size: res.content.length,
+        size: (res.content ?? '').length,
         ctime: res.time,
         mtime: 0
       };
@@ -104,7 +104,7 @@ export default class myArticleFsProvider
         category: res.category,
         status: res.status,
         content: new TextDecoder().decode(content),
-        top: res.top
+        top: res.top ?? 0
       });
       this._onDidChangeFile.fire([
         { type: vscode.FileChangeType.Changed, uri }

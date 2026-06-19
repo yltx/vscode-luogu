@@ -109,21 +109,15 @@ let needLoginShown = false;
 export const needLogin = () => {
   if (needLoginShown) return;
   needLoginShown = true;
-  vscode.window
-    .showErrorMessage('未登录', '登录')
+  // showErrorMessage 返回 Thenable 而非 Promise（无 finally），需包装为真正的 Promise
+  Promise.resolve(vscode.window.showErrorMessage('未登录', '登录'))
     .then(async c => {
       if (c) vscode.commands.executeCommand('luogu.signin');
     })
-    .then(
-      () => {
-        setTimeout(() => {
-          needLoginShown = false;
-        }, 5000);
-      },
-      () => {
-        setTimeout(() => {
-          needLoginShown = false;
-        }, 5000);
-      }
-    );
+    // 无论用户是否点击，5 秒后都重置标记以允许再次提示
+    .finally(() => {
+      setTimeout(() => {
+        needLoginShown = false;
+      }, 5000);
+    });
 };

@@ -13,7 +13,9 @@ const { formatTime, formatDate } = await import('@/utils/stringUtils');
 import type {
   GetScoreboardResponse,
   Score,
-  LegacyProblemSummary
+  ProblemSummary,
+  ProblemStatus,
+  Maybe
 } from 'luogu-api';
 import './ranklist.css';
 import { ColoredScore } from './scoreUtils';
@@ -21,7 +23,10 @@ import { ColoredScore } from './scoreUtils';
 export default function Ranklist({
   problems
 }: {
-  problems: { score: number; problem: LegacyProblemSummary }[];
+  problems: {
+    score: number;
+    problem: ProblemSummary & Maybe<ProblemStatus> & { fullScore?: number };
+  }[];
 }) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -92,7 +97,7 @@ export default function Ranklist({
   }, [autoRefresh, page]);
 
   const contestFullScore = problems.reduce(
-    (a, b) => a + Math.floor((b.score / 100) * b.problem.fullScore),
+    (a, b) => a + Math.floor((b.score / 100) * (b.problem.fullScore ?? 0)),
     0
   );
 
@@ -130,7 +135,10 @@ export default function Ranklist({
                     <UserName user={new UserInfo(s.user)} />
                   </div>
                   <div className="cr-col cr-col-score">
-                    <ColoredScore full={contestFullScore} score={s.score} />
+                    <ColoredScore
+                      full={contestFullScore}
+                      score={s.score ?? 0}
+                    />
                     <span>({formatTime(s.runningTime)})</span>
                   </div>
                   {problems.map(p => {
@@ -147,7 +155,7 @@ export default function Ranklist({
                           <>
                             <ColoredScore
                               full={Math.floor(
-                                (p.score / 100) * p.problem.fullScore
+                                (p.score / 100) * (p.problem.fullScore ?? 0)
                               )}
                               score={detail.score}
                             />
