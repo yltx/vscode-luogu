@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import { fetchRecords, fetchResult } from '@/utils/api';
 import { getDistFilePath } from '@/utils/html';
 import { createWebsocket, WebsocketSchema } from '@/utils/websocket';
-import { processAxiosError, getWebviewViewColumn } from '@/utils/workspaceUtils';
+import {
+  processAxiosError,
+  getWebviewViewColumn
+} from '@/utils/workspaceUtils';
 import { RecordData } from 'luogu-api';
 import { MessageTypes } from '@w/views/record/data';
 

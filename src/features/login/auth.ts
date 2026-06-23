@@ -43,7 +43,11 @@ export default class LuoguAuthProvider
               clientID: await genClientID(),
               name: ''
             });
-            vscode.commands.executeCommand('setContext', 'luoguLoginStatus', false);
+            vscode.commands.executeCommand(
+              'setContext',
+              'luoguLoginStatus',
+              false
+            );
             finishlock();
             return;
           }

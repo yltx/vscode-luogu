@@ -88,8 +88,7 @@ export default class myArticleFsProvider
     try {
       const articleData = (await getArticle(uri.query)).data;
       const res = articleData.article;
-      if (!articleData.canEdit)
-        throw vscode.FileSystemError.NoPermissions(uri);
+      if (!articleData.canEdit) throw vscode.FileSystemError.NoPermissions(uri);
       if (res.promoteStatus === 2)
         if (
           (await vscode.window.showWarningMessage(

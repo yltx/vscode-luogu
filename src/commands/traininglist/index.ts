@@ -3,7 +3,11 @@ import * as vscode from 'vscode';
 import { searchTrainingdetail, searchTraininglist } from '@/utils/api';
 import { getResourceFilePath } from '@/utils/html';
 import { showTrainDetails } from '@/utils/showTrainDetails';
-import { getUsernameColor, getUserSvg, getWebviewViewColumn } from '@/utils/workspaceUtils';
+import {
+  getUsernameColor,
+  getUserSvg,
+  getWebviewViewColumn
+} from '@/utils/workspaceUtils';
 
 export default new SuperCommand({
   onCommand: 'traininglist',

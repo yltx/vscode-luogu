@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import type { ArticleDetails, List } from 'luogu-api';
 import { getSolution, voteArticle } from '@/utils/api';
 import { getDistFilePath } from '@/utils/html';
-import { processAxiosError, getWebviewViewColumn } from '@/utils/workspaceUtils';
+import {
+  processAxiosError,
+  getWebviewViewColumn
+} from '@/utils/workspaceUtils';
 import useWebviewResponseHandle from '@/utils/webviewResponse';
 import ArticleData from '@/model/article';
 

@@ -747,10 +747,13 @@ interface TagsResponse {
 
 export const fetchLuoguTags = async (): Promise<TagsResponse> => {
   try {
-    const res = await axios.get<TagsResponse>('https://www.luogu.com.cn/_lfe/tags/zh-CN', {
-      myInterceptors_notCheckCookie: true,
-      myInterceptors_cookie: null
-    });
+    const res = await axios.get<TagsResponse>(
+      'https://www.luogu.com.cn/_lfe/tags/zh-CN',
+      {
+        myInterceptors_notCheckCookie: true,
+        myInterceptors_cookie: null
+      }
+    );
     return res.data;
   } catch (err) {
     throw new Error('获取标签数据失败', { cause: err });

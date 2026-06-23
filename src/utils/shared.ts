@@ -274,7 +274,10 @@ export const formatTime = (
         const lens = matched.length === 1 ? 3 : matched.length;
         fmt = fmt.replace(
           matched,
-          ('00' + o[k]).slice(('' + o[k]).length - 1, ('' + o[k]).length - 1 + lens)
+          ('00' + o[k]).slice(
+            ('' + o[k]).length - 1,
+            ('' + o[k]).length - 1 + lens
+          )
         );
       } else {
         fmt = fmt.replace(

@@ -19,7 +19,9 @@ class TagManager {
     const cached = globalThis.__luoguTagsCache;
     const cacheTime = globalThis.__luoguTagsCacheTime;
     if (cached && cacheTime && Date.now() - cacheTime < CACHE_DURATION) {
-      this.tags = new Map(Object.entries(cached).map(([k, v]) => [Number(k), v as Tag]));
+      this.tags = new Map(
+        Object.entries(cached).map(([k, v]) => [Number(k), v as Tag])
+      );
       return true;
     }
     return false;
@@ -36,7 +38,10 @@ class TagManager {
       try {
         const res = await fetchLuoguTags();
         const typeColors = new Map(
-          res.types.map(t => [t.id, isColorKey(t.color) ? ColorPalette[t.color] : '#000000'])
+          res.types.map(t => [
+            t.id,
+            isColorKey(t.color) ? ColorPalette[t.color] : '#000000'
+          ])
         );
         this.tags.clear();
         this.types = typeColors;
@@ -57,7 +62,8 @@ class TagManager {
   }
 
   private async ensureLoaded(): Promise<void> {
-    if (this.tags.size > 0 && Date.now() - this.lastFetch < CACHE_DURATION) return;
+    if (this.tags.size > 0 && Date.now() - this.lastFetch < CACHE_DURATION)
+      return;
     if (!this.loadFromCache()) await this.fetchTags();
   }
 

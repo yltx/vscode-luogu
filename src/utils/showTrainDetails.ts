@@ -40,12 +40,14 @@ const getDifficultyStatus = (difficulty: number) => {
 };
 const getTagsStatus = async (tagIds: number[]) => {
   const resolved = await tagManager.getTags(tagIds);
-  return resolved.map((tag, i) => {
-    const id = tagIds[i];
-    const name = tag?.name ?? `未知标签(${id})`;
-    const color = tag?.color ?? '#000000';
-    return `<span class="lfe-caption" style="color: rgb(255, 255, 255); background-color: ${color}">${name}</span>&nbsp;`;
-  }).join('');
+  return resolved
+    .map((tag, i) => {
+      const id = tagIds[i];
+      const name = tag?.name ?? `未知标签(${id})`;
+      const color = tag?.color ?? '#000000';
+      return `<span class="lfe-caption" style="color: rgb(255, 255, 255); background-color: ${color}">${name}</span>&nbsp;`;
+    })
+    .join('');
 };
 export class TrainDetals {
   public title: string;
