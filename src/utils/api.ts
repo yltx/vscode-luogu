@@ -71,14 +71,11 @@ export namespace API {
     )}&_contentOnly=1`;
   export const SOLUTION_REFERER = (pid: string) => `/problem/solution/${pid}`;
   export const MYARTICLE = `/article/mine?_contentOnly`,
-    DELETE_ARTICLE = (lid: string) => `${apiURL}/article/delete/${lid}`,
-    EDIT_ARTICLE = (lid: string) => `${apiURL}/article/edit/${lid}`,
+    DELETE_ARTICLE = (lid: string) => `/article/${lid}/delete`,
+    EDIT_ARTICLE = (lid: string) => `/article/${lid}/editSubmit`,
     GET_ARTICLE = (lid: string) => `/article/${lid}?_contentOnly`,
-    REQUEST_PROMOTION = (lid: string) => `/api/article/requestPromotion/${lid}`,
-    WITHDRAW_PROMOTION = (lid: string) =>
-      `/api/article/withdrawPromotion/${lid}`,
-    CREATE_ARTICLE = '/api/article/new';
-  export const VOTE_ARTICLE = (lid: string) => `/api/article/vote/${lid}`;
+    CREATE_ARTICLE = '/article/_newSubmit';
+  export const VOTE_ARTICLE = (lid: string) => `/article/${lid}/vote`;
   export const CSRF_TOKEN = `/ranking`;
   export const CLIENT_ID = `/auth/login`;
 }
@@ -675,7 +672,7 @@ export const listMyArticles = async (params: {
       ).flat()
     ]),
   deleteArticle = async (lid: string) =>
-    axios.post<{ lid: string }>(API.DELETE_ARTICLE(lid)).then(x => x.data),
+    axios.post<{ lid: string }>(API.DELETE_ARTICLE(lid), {}).then(x => x.data),
   editArticle = async (lid: string, data: EditArticleRequest) =>
     axios
       .post<{ article: ArticleDetails }>(API.EDIT_ARTICLE(lid), data)
@@ -684,10 +681,6 @@ export const listMyArticles = async (params: {
     axios
       .get<LentilleDataResponse<ArticleData>>(API.GET_ARTICLE(lid))
       .then(x => x.data),
-  requestPromotion = async (lid: string) =>
-    axios.post<void>(API.REQUEST_PROMOTION(lid)).then(x => x.data),
-  withdrawPromotion = async (lid: string) =>
-    axios.post<void>(API.WITHDRAW_PROMOTION(lid)).then(x => x.data),
   createArticle = async (data: EditArticleRequest) =>
     axios
       .post<{ article: ArticleDetails }>(API.CREATE_ARTICLE, data)

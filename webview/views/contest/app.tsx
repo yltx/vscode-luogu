@@ -75,8 +75,8 @@ export default function App({
             <a href={`https://www.luogu.com.cn/contest/${data.contest.id}`}>
               {data.contest.id}
             </a>{' '}
-            <Tag>{ContestRuleTypes[data.contest.ruleType]}</Tag>
-            <Tag>{ContestVisibilityTypes[data.contest.visibilityType]}</Tag>
+            <Tag>{ContestRuleTypes[data.contest.method]}</Tag>
+            <Tag>{ContestVisibilityTypes[data.contest.visibility]}</Tag>
             {data.contest.rated && <Tag color={ColorPalette['cyan-3']}>咕</Tag>}
             {data.contest.eloThreshold !== null &&
               data.contest.eloThreshold >= 0 && (
@@ -187,7 +187,7 @@ export default function App({
                     </a>
                   </div>
                   <div className="cp-col cp-col-submitted">
-                    {p.submitted && (
+                    {p.problem.submitted && (
                       <FontAwesomeIcon
                         icon={faCheck}
                         className="submitted-icon"

@@ -129,10 +129,6 @@
         "title": "删除文章"
       },
       {
-        "command": "luogu.myarticle.setPromoteStatus",
-        "title": "申请/撤回全站推荐"
-      },
-      {
         "command": "luogu.myarticle.setSolutionFor",
         "title": "修改关联的题目"
       },
@@ -292,11 +288,6 @@
           "group": "navigation@7"
         },
         {
-          "command": "luogu.myarticle.setPromoteStatus",
-          "when": "view == luogu.myarticle && viewItem =~ /^luogu.article.articleitem/",
-          "group": "navigation@6"
-        },
-        {
           "command": "luogu.myarticle.setSolutionFor",
           "when": "view == luogu.myarticle && viewItem =~ /^luogu.article.articleitem.solution/",
           "group": "navigation@5"
@@ -345,10 +336,6 @@
         },
         {
           "command": "luogu.myarticle.delete",
-          "when": "false"
-        },
-        {
-          "command": "luogu.myarticle.setPromoteStatus",
           "when": "false"
         },
         {
