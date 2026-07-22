@@ -13,15 +13,20 @@ const { formatTime, formatDate } = await import('@/utils/stringUtils');
 import type {
   GetScoreboardResponse,
   Score,
-  LegacyProblemSummary
+  ProblemSummary,
+  ProblemStatus,
+  Maybe
 } from 'luogu-api';
 import './ranklist.css';
-import { ColoredScore } from './scoreUtils';
+import { FormatScore } from './scoreUtils';
 
 export default function Ranklist({
   problems
 }: {
-  problems: { score: number; problem: LegacyProblemSummary }[];
+  problems: {
+    score: number;
+    problem: ProblemSummary & Maybe<ProblemStatus>;
+  }[];
 }) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -91,11 +96,6 @@ export default function Ranklist({
     };
   }, [autoRefresh, page]);
 
-  const contestFullScore = problems.reduce(
-    (a, b) => a + Math.floor((b.score / 100) * b.problem.fullScore),
-    0
-  );
-
   return (
     <div className="cr">
       <div className="cr-table-wrapper">
@@ -130,7 +130,11 @@ export default function Ranklist({
                     <UserName user={new UserInfo(s.user)} />
                   </div>
                   <div className="cr-col cr-col-score">
-                    <ColoredScore full={contestFullScore} score={s.score} />
+                    {s.score === null ? (
+                      <span>N/A</span>
+                    ) : (
+                      <FormatScore score={s.score} />
+                    )}
                     <span>({formatTime(s.runningTime)})</span>
                   </div>
                   {problems.map(p => {
@@ -145,12 +149,7 @@ export default function Ranklist({
                       <div className="cr-col cr-col-score" key={p.problem.pid}>
                         {detail !== undefined && (
                           <>
-                            <ColoredScore
-                              full={Math.floor(
-                                (p.score / 100) * p.problem.fullScore
-                              )}
-                              score={detail.score}
-                            />
+                            <FormatScore score={detail.score} />
                             {detail.runningTime !== undefined && (
                               <span>({formatTime(detail.runningTime)})</span>
                             )}

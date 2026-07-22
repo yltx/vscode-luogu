@@ -52,10 +52,15 @@ interface CphRequestType {
 
 export async function checkCPH() {
   const port = getCphPort();
-  return await axios
-    .get(`http://localhost:${port}`)
-    .then(() => true)
-    .catch(() => false);
+  for (const host of ['127.0.0.1', 'localhost']) {
+    try {
+      await axios.get(`http://${host}:${port}`, { timeout: 1500 });
+      return true;
+    } catch {
+      // Try the alternate loopback host before reporting CPH unavailable.
+    }
+  }
+  return false;
 }
 export async function sendCphMessage(data: ProblemData) {
   const config = vscode.workspace.getConfiguration('luogu').get('cphStyle') as [
@@ -64,41 +69,50 @@ export async function sendCphMessage(data: ProblemData) {
     'ProblemIDwithProblemName'
   ][number];
   const port = getCphPort();
-  await axios
-    .post(`http://localhost:${port}`, {
-      name:
-        'Luogu' +
-        (config === 'ProblemID' || config === 'ProblemIDwithProblemName'
-          ? ' - ' + data.problem.pid
-          : '') +
-        (config === 'ProblemName' || config === 'ProblemIDwithProblemName'
-          ? ' - ' + (data.problem.title ?? data.problem.content.name)
-          : ''),
-      url:
-        'https://www.luogu.com.cn/problem/' +
-        data.problem.pid +
-        (data.contest ? '?contestId=' + data.contest.id : ''),
-      memoryLimit: Math.max(...data.problem.limits.memory) / 1024,
-      timeLimit: Math.max(...data.problem.limits.time),
-      tests: data.problem.samples.map((d, i) => ({
-        input: d[0],
-        output: d[1],
-        id: i
-      })),
-      group: 'luogu' + (data.contest ? ' - ' + data.contest.id : ''),
-      testType: 'single',
-      input: { type: 'stdin' },
-      output: { type: 'stdout' },
-      languages: {
-        java: {
-          mainClass: 'Main',
-          taskClass: ''
-        }
-      },
-      batch: {
-        id: randomUUID(),
-        size: 1
+  const request = {
+    name:
+      'Luogu' +
+      (config === 'ProblemID' || config === 'ProblemIDwithProblemName'
+        ? ' - ' + data.problem.pid
+        : '') +
+      (config === 'ProblemName' || config === 'ProblemIDwithProblemName'
+        ? ' - ' + (data.problem.title ?? data.problem.content.name)
+        : ''),
+    url:
+      'https://www.luogu.com.cn/problem/' +
+      data.problem.pid +
+      (data.contest ? '?contestId=' + data.contest.id : ''),
+    memoryLimit: Math.max(...data.problem.limits.memory) / 1024,
+    timeLimit: Math.max(...data.problem.limits.time),
+    tests: data.problem.samples.map((d, i) => ({
+      input: d[0],
+      output: d[1],
+      id: i
+    })),
+    group: 'luogu' + (data.contest ? ' - ' + data.contest.id : ''),
+    testType: 'single',
+    input: { type: 'stdin' },
+    output: { type: 'stdout' },
+    languages: {
+      java: {
+        mainClass: 'Main',
+        taskClass: ''
       }
-    } satisfies CphRequestType)
-    .catch(processAxiosError('传送 CPH '));
+    },
+    batch: {
+      id: randomUUID(),
+      size: 1
+    }
+  } satisfies CphRequestType;
+  let lastError: unknown;
+  for (const host of ['127.0.0.1', 'localhost']) {
+    try {
+      await axios.post(`http://${host}:${port}`, request, { timeout: 3000 });
+      vscode.window.showInformationMessage('已传送到 CPH。');
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  processAxiosError('传送 CPH')(lastError);
 }

@@ -211,11 +211,12 @@ export enum difficultyID {
   '暂无评定' = 0,
   '入门' = 1,
   '普及-' = 2,
-  '普及/提高-' = 3,
-  '普及+/提高' = 4,
-  '提高+/省选-' = 5,
-  '省选/NOI-' = 6,
-  'NOI/NOI+/CTSC' = 7
+  '普及' = 3,
+  '普及+/提高-' = 4,
+  '提高' = 5,
+  '提高+/省选-' = 6,
+  '省选/NOI-' = 7,
+  'NOI/NOI+/CTS' = 8
 }
 
 export enum problemset {
@@ -231,11 +232,12 @@ export const difficultyName = [
   '暂无评定',
   '入门',
   '普及-',
-  '普及/提高-',
-  '普及+/提高',
+  '普及',
+  '普及+/提高-',
+  '提高',
   '提高+/省选-',
   '省选/NOI-',
-  'NOI/NOI+/CTSC'
+  'NOI/NOI+/CTS'
 ];
 // Reference: https://www.luogu.com.cn/paste/3ez54nl2
 export const difficultyColor = [
@@ -244,10 +246,19 @@ export const difficultyColor = [
   '#F39C11',
   '#FFC116',
   '#52C41A',
+  '#13C2C2',
   '#3498DB',
   '#9D3DCF',
   '#0E1D69'
 ];
+
+export const getDifficulty = (difficulty: number | null | undefined) => {
+  const id = difficulty ?? 0;
+  return {
+    name: difficultyName[id] ?? `未知难度 (${id})`,
+    color: difficultyColor[id] ?? difficultyColor[0]
+  };
+};
 
 export const formatTime = (
   date: Date | number,
@@ -274,7 +285,10 @@ export const formatTime = (
         const lens = matched.length === 1 ? 3 : matched.length;
         fmt = fmt.replace(
           matched,
-          ('00' + o[k]).slice(('' + o[k]).length - 1, ('' + o[k]).length - 1 + lens)
+          ('00' + o[k]).slice(
+            ('' + o[k]).length - 1,
+            ('' + o[k]).length - 1 + lens
+          )
         );
       } else {
         fmt = fmt.replace(

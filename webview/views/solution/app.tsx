@@ -16,6 +16,8 @@ import type ArticleData from '@/model/article';
 
 export default function App({ total }: { total: number }) {
   const [index, setIndex] = useState(0);
+  if (total === 0)
+    return <div className="solution-empty">当前题目暂无题解。</div>;
   return <SolutionPage index={index} setIndex={setIndex} total={total} />;
 }
 
@@ -47,35 +49,36 @@ function SolutionPage({
     return () => void (ignore = true);
   }, [index]);
   return (
-    <>
+    <div className="solution-page">
       {typeof article === 'object' ? (
-        <div>
-          <div>
-            <span>
-              <UserIcon url={article.author.icon} uid={article.author.uid} />
-              <UserName user={article.author} />
-              {'@ '}
-              <Time time={article.createTime} />
-            </span>
-            <span>
-              文章 ID：
-              <a href={'https://www.luogu.com/article/' + article.lid}>
-                {article.lid}
-              </a>
-            </span>
-          </div>
-          <Md>{article.content}</Md>
-        </div>
+        <main className="solution-scroll">
+          <article className="solution-article">
+            <header className="solution-meta">
+              <span className="solution-author">
+                <UserIcon url={article.author.icon} uid={article.author.uid} />
+                <UserName user={article.author} />
+                {'@ '}
+                <Time time={article.createTime} />
+              </span>
+              <span className="solution-id">
+                文章 ID：
+                <a href={'https://www.luogu.com/article/' + article.lid}>
+                  {article.lid}
+                </a>
+              </span>
+            </header>
+            <div className="solution-content">
+              <Md>{article.content}</Md>
+            </div>
+          </article>
+        </main>
       ) : (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
+        <main className="solution-state">
           {article === undefined ? (
-            <VSCodeProgressRing />
+            <>
+              <VSCodeProgressRing />
+              <span>正在加载题解...</span>
+            </>
           ) : (
             <>
               <VSCodeButton
@@ -86,7 +89,7 @@ function SolutionPage({
               </VSCodeButton>
             </>
           )}
-        </div>
+        </main>
       )}
       <ControlBar
         index={index}
@@ -104,7 +107,7 @@ function SolutionPage({
             : undefined
         }
       />
-    </>
+    </div>
   );
 }
 
@@ -124,14 +127,12 @@ function ControlBar({
   };
 }) {
   return (
-    <div>
+    <footer className="solution-controls">
       {vote && (
         <div className="vote">
           <VSCodeButton
             appearance="icon"
-            style={
-              vote.voted === 1 ? { color: 'rgb(52, 152, 219)' } : undefined
-            }
+            className={vote.voted === 1 ? 'vote-selected' : undefined}
             onClick={() => vote.update(vote.voted === 1 ? 0 : 1)}
           >
             <FontAwesomeIcon icon={faThumbsUp} />
@@ -139,9 +140,7 @@ function ControlBar({
           </VSCodeButton>
           <VSCodeButton
             appearance="icon"
-            style={
-              vote.voted === -1 ? { color: 'rgb(52, 152, 219)' } : undefined
-            }
+            className={vote.voted === -1 ? 'vote-selected' : undefined}
             onClick={() => vote.update(vote.voted === -1 ? 0 : -1)}
           >
             <FontAwesomeIcon icon={faThumbsDown} />
@@ -167,6 +166,6 @@ function ControlBar({
           下一篇
         </VSCodeButton>
       </div>
-    </div>
+    </footer>
   );
 }

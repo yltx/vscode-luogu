@@ -28,7 +28,9 @@ export default function App({
 }: {
   children: ContestData;
 }) {
-  const [tab, setTab] = React.useState<'detail' | 'ranklist'>('detail');
+  const [tab, setTab] = React.useState<'problems' | 'detail' | 'ranklist'>(
+    'problems'
+  );
   const [data, setData] = React.useState<ContestData>(contestData);
   const [reloading, setReloading] = React.useState(false);
   const [monitoring, setMonitoring] = React.useState(false);
@@ -75,8 +77,8 @@ export default function App({
             <a href={`https://www.luogu.com.cn/contest/${data.contest.id}`}>
               {data.contest.id}
             </a>{' '}
-            <Tag>{ContestRuleTypes[data.contest.ruleType]}</Tag>
-            <Tag>{ContestVisibilityTypes[data.contest.visibilityType]}</Tag>
+            <Tag>{ContestRuleTypes[data.contest.method]}</Tag>
+            <Tag>{ContestVisibilityTypes[data.contest.visibility]}</Tag>
             {data.contest.rated && <Tag color={ColorPalette['cyan-3']}>咕</Tag>}
             {data.contest.eloThreshold !== null &&
               data.contest.eloThreshold >= 0 && (
@@ -152,56 +154,14 @@ export default function App({
           </VSCodeButton>
         </div>
       </header>
-      {data.contestProblems && (
-        <>
-          <hr />
-          <div className="contest-problems">
-            <div className="cp-table">
-              <div className="cp-row cp-header" role="row">
-                <div className="cp-col cp-col-index">#</div>
-                <div className="cp-col cp-col-maxscore">倍率(%)</div>
-                <div className="cp-col cp-col-title">题目名称</div>
-                <div className="cp-col cp-col-submitted">已提交</div>
-              </div>
-              {data.contestProblems.map((p, i) => (
-                <div className="cp-row" role="row" key={p.problem.pid}>
-                  <div className="cp-col cp-col-index">
-                    {String.fromCharCode(65 + i)}
-                  </div>
-                  <div className="cp-col cp-col-maxscore">
-                    <FormatScore score={p.score} />
-                  </div>
-                  <div className="cp-col cp-col-title" title={p.problem.title}>
-                    <a
-                      href={
-                        'command:luogu.searchProblem?' +
-                        encodeURIComponent(
-                          JSON.stringify({
-                            pid: p.problem.pid,
-                            cid: data.contest.id
-                          })
-                        )
-                      }
-                    >
-                      {p.problem.title}
-                    </a>
-                  </div>
-                  <div className="cp-col cp-col-submitted">
-                    {p.submitted && (
-                      <FontAwesomeIcon
-                        icon={faCheck}
-                        className="submitted-icon"
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
       <Navbar
         actions={[
+          {
+            id: 'problems',
+            label: '题目列表',
+            checked: tab === 'problems',
+            onClick: () => setTab('problems')
+          },
           {
             id: 'detail',
             label: '比赛详情',
@@ -216,6 +176,61 @@ export default function App({
           }
         ]}
       />
+      {tab === 'problems' && data.contestProblems && (
+        <div
+          className="contest-problems"
+          role="table"
+          aria-label="比赛题目列表"
+        >
+          <div className="cp-table">
+            <div className="cp-row cp-header" role="row">
+              <div className="cp-col cp-col-index">#</div>
+              <div className="cp-col cp-col-maxscore">倍率(%)</div>
+              <div className="cp-col cp-col-title">题目名称</div>
+              <div className="cp-col cp-col-submitted">已提交</div>
+            </div>
+            {data.contestProblems.map((p, i) => {
+              const problemName =
+                ('name' in p.problem && typeof p.problem.name === 'string'
+                  ? p.problem.name
+                  : p.problem.title) || p.problem.pid;
+              return (
+                <div className="cp-row" role="row" key={p.problem.pid}>
+                  <div className="cp-col cp-col-index">
+                    {String.fromCharCode(65 + i)}
+                  </div>
+                  <div className="cp-col cp-col-maxscore">
+                    <FormatScore score={p.score} />
+                  </div>
+                  <div className="cp-col cp-col-title" title={problemName}>
+                    <a
+                      href={
+                        'command:luogu.searchProblem?' +
+                        encodeURIComponent(
+                          JSON.stringify({
+                            pid: p.problem.pid,
+                            cid: data.contest.id
+                          })
+                        )
+                      }
+                    >
+                      {problemName}
+                    </a>
+                  </div>
+                  <div className="cp-col cp-col-submitted">
+                    {p.problem.submitted && (
+                      <FontAwesomeIcon
+                        icon={faCheck}
+                        className="submitted-icon"
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {tab === 'detail' && (
         <ArticleViewer>{data.contest.description}</ArticleViewer>
       )}

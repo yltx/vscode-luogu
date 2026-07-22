@@ -1,62 +1,117 @@
 body {
   padding: 0;
 }
-#app {
-  position: absolute;
+
+#app,
+.solution-page {
   width: 100%;
   height: 100%;
+}
+
+.solution-page {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  & > :nth-child(1) {
-    flex: 1;
-    overflow: auto;
-    padding: 8px;
-    & > :nth-child(1) {
-      display: flex;
-      align-items: center;
-      & > :nth-child(1) {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 0.5em;
-      }
-    }
+}
+
+.solution-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 20px clamp(12px, 4vw, 34px) 32px;
+}
+
+.solution-article {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.solution-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+  color: var(--vscode-descriptionForeground);
+  border-bottom: 1px solid var(--vscode-panel-border, #7f7f7f55);
+}
+
+.solution-author {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.solution-content {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.solution-content article img {
+  max-width: 100%;
+  height: auto;
+}
+
+.solution-state,
+.solution-empty {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  color: var(--vscode-descriptionForeground);
+}
+
+.solution-empty {
+  min-height: 100%;
+}
+
+.solution-controls {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--vscode-editor-background);
+  border-top: 1px solid var(--vscode-panel-border, #7f7f7f55);
+  box-shadow: 0 -3px 10px var(--vscode-widget-shadow, #00000020);
+}
+
+.vote {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.vote-selected {
+  color: var(--vscode-textLink-foreground, #3498db);
+}
+
+.pageShow {
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+}
+
+.pageControl {
+  display: flex;
+  gap: 8px;
+}
+
+@media screen and (max-width: 480px) {
+  .solution-scroll {
+    padding: 14px 10px 24px;
   }
-  & > :nth-child(2) {
-    border-top: 1px solid #777;
-    padding: 5px;
-    display: grid;
-    grid-template:
-      'vote pageShow pageControl'
-      / auto 85px 150px;
-    column-gap: 10px;
-    align-items: center;
-    & > .vote {
-      grid-area: vote;
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      margin-left: 15px;
-      margin-right: 15px;
-    }
-    & > .pageShow {
-      grid-area: pageShow;
-      text-align: right;
-    }
-    & > .pageControl {
-      grid-area: pageControl;
-      display: flex;
-      gap: 10px;
-      & > vscode-button {
-        flex: 1;
-      }
-    }
-    @media screen and (max-width: 350px) {
-      grid-template:
-        'vote pageShow'
-        'pageControl pageControl'
-        / auto 85px;
-    }
+
+  .solution-controls {
+    grid-template-columns: 1fr auto;
+  }
+
+  .pageControl {
+    grid-column: 1 / -1;
+  }
+
+  .pageControl > vscode-button {
+    flex: 1;
   }
 }

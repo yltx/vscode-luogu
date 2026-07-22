@@ -5,7 +5,7 @@ import { Article } from 'luogu-api';
 import { ArticleCategory } from '@/utils/shared';
 import {
   editArticle,
-  getArticle,
+  getEditableArticle,
   requestPromotion,
   withdrawPromotion
 } from '@/utils/api';
@@ -23,6 +23,10 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(view);
   context.subscriptions.push(
+    vscode.commands.registerCommand('luogu.myarticle.open', async () => {
+      await vscode.commands.executeCommand('workbench.view.extension.luogu');
+      await vscode.commands.executeCommand('luogu.myarticle.focus');
+    }),
     vscode.commands.registerCommand('luogu.myarticle.refresh', () =>
       view.refresh()
     ),
@@ -54,7 +58,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
             )
           ) + 1;
         if (x === 0) return;
-        const res = (await getArticle(item.lid)).data.article;
+        const res = (await getEditableArticle(item.lid)).data.article;
         let solutionFor = res.solutionFor?.pid ?? null;
         if (x == 2)
           solutionFor =
@@ -69,7 +73,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           category: x,
           status: res.status,
           content: res.content,
-          top: res.top
+          top: res.top ?? 0
         }).catch(e => {
           if (isAxiosError(e) && e.response)
             vscode.window.showErrorMessage(e.response.data.errorMessage);
@@ -85,7 +89,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           vscode.window.showErrorMessage('该文章已经申请推荐，无法隐藏。');
           return;
         }
-        const res = (await getArticle(item.lid)).data.article;
+        const res = (await getEditableArticle(item.lid)).data.article;
         const choice = await vscode.window.showQuickPick(['显示', '隐藏']);
         if (!choice) return;
         await editArticle(item.lid, {
@@ -94,7 +98,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           category: res.category,
           status: choice === '显示' ? 2 : 1,
           content: res.content,
-          top: res.top
+          top: res.top ?? 0
         }).catch(e => {
           if (isAxiosError(e) && e.response)
             vscode.window.showErrorMessage(e.response.data.errorMessage);
@@ -106,7 +110,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'luogu.myarticle.rename',
       async (item: Article) => {
-        const res = (await getArticle(item.lid)).data.article;
+        const res = (await getEditableArticle(item.lid)).data.article;
         const name = await vscode.window.showInputBox({ value: res.title });
         if (!name) return;
         await editArticle(item.lid, {
@@ -115,7 +119,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           category: res.category,
           status: res.status,
           content: res.content,
-          top: res.top
+          top: res.top ?? 0
         }).catch(processAxiosError('重命名文章'));
         view.refresh();
       }
@@ -182,7 +186,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'luogu.myarticle.setSolutionFor',
       async (item: Article) => {
-        const res = (await getArticle(item.lid)).data.article;
+        const res = (await getEditableArticle(item.lid)).data.article;
         const problem = await vscode.window.showInputBox({
           value: res.solutionFor?.pid,
           ignoreFocusOut: true,
@@ -195,7 +199,7 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
           category: res.category,
           status: res.status,
           content: res.content,
-          top: res.top
+          top: res.top ?? 0
         }).catch(processAxiosError('设置关联题目'));
         view.refresh();
       }
@@ -203,12 +207,12 @@ export default function registerMyArticle(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'luogu.myarticle.setTop',
       async (item: Article) => {
-        const res = (await getArticle(item.lid)).data.article;
+        const res = (await getEditableArticle(item.lid)).data.article;
         const top = await vscode.window.showInputBox({
           title: '置顶量',
           ignoreFocusOut: true,
           placeHolder: '0 到 255 之间的整数。越高的值越靠前。',
-          value: res.top.toString(),
+          value: (res.top ?? 0).toString(),
           validateInput: value => {
             if (!/^\d+$/.test(value)) return '请输入 0 到 255 之间的整数';
             const num = parseInt(value);

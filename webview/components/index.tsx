@@ -1,5 +1,5 @@
 const { default: React } = await import('react');
-const { difficultyColor, difficultyName } = await import('@/utils/shared');
+const { getDifficulty } = await import('@/utils/shared');
 import { UserInfo } from '@/model/user';
 import { getTag } from '@w/utils/tags';
 
@@ -80,9 +80,8 @@ export function UserIcon({ url: image, uid }: { url?: string; uid?: number }) {
 }
 
 export function ProblemDifficultyTag({ difficulty }: { difficulty: number }) {
-  return (
-    <Tag color={difficultyColor[difficulty]}>{difficultyName[difficulty]}</Tag>
-  );
+  const item = getDifficulty(difficulty);
+  return <Tag color={item.color}>{item.name}</Tag>;
 }
 
 export function ProblemTag({ tag }: { tag: number }) {
@@ -106,9 +105,10 @@ export function ProblemNameWithDifficulty({
   difficulty: number;
   contestId?: number;
 }) {
+  const item = getDifficulty(difficulty);
   return (
     <a className="problemNameWithDifficulty">
-      <span style={{ color: difficultyColor[difficulty] }}>{pid}</span> {title}
+      <span style={{ color: item.color }}>{pid}</span> {title}
       {contestId && ' · ' + contestId}
     </a>
   );

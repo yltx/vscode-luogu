@@ -8,6 +8,7 @@
 /* Contest problems list using CSS flexbox for a table-like layout */
 .contest-problems {
   width: 100%;
+  padding-top: 0.5em;
 }
 
 .cp-table {
@@ -16,8 +17,12 @@
 
 .cp-row {
   display: flex;
-  padding: 0.5em;
+  padding: 0.7em 0.6em;
   gap: 1em;
+}
+
+.cp-row:not(.cp-header):hover {
+  background: var(--vscode-list-hoverBackground);
 }
 
 .cp-header {

@@ -1,7 +1,7 @@
 const { default: React, useEffect, useState } = await import('react');
 const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
-const { faChevronDown, faBook } = await import(
+const { faChevronDown, faBook, faPaperPlane } = await import(
   '@fortawesome/free-solid-svg-icons'
 );
 const { ProblemDifficultyTag } = await import('@w/components');
@@ -88,6 +88,14 @@ export default function Problem({ children: data }: { children: ProblemData }) {
                 </div>
               </VSCodeButton>
             )}
+            <VSCodeButton
+              onClick={() => send('submitProblem', undefined)}
+              appearance="primary"
+            >
+              <div>
+                <FontAwesomeIcon icon={faPaperPlane} /> 提交代码
+              </div>
+            </VSCodeButton>
             {data.problem.type !== 'T' &&
               data.problem.type !== 'U' &&
               !data.contest && (

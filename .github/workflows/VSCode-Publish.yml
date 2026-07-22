@@ -24,7 +24,9 @@ jobs:
         with:
           node-version: 20
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+      - name: Validate
+        run: npm run typecheck && npm run test
       - name: Package
         run: npm run pack
       - name: Upload to Github Releases

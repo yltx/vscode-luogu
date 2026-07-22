@@ -27,8 +27,8 @@ export default function registerContest(context: vscode.ExtensionContext) {
               title: contestData.contest.name,
               startTime: contestData.contest.startTime,
               endTime: contestData.contest.endTime,
-              ruleType: contestData.contest.ruleType,
-              visibilityType: contestData.contest.visibilityType,
+              ruleType: contestData.contest.method,
+              visibilityType: contestData.contest.visibility,
               owner:
                 'uid' in contestData.contest.host
                   ? {
@@ -39,7 +39,7 @@ export default function registerContest(context: vscode.ExtensionContext) {
                       teamId: contestData.contest.host.id,
                       name: contestData.contest.host.name
                     },
-              rated: contestData.contest.rated
+              rated: Boolean(contestData.contest.rated)
             });
             showContestWebview(contestData);
             return true;

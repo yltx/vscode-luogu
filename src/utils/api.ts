@@ -29,6 +29,8 @@ import {
 } from './workspaceUtils';
 import { needLogin } from './uiUtils';
 
+type EditableArticle = ArticleDetails & { content: string; top: number };
+
 export const CSRF_TOKEN_REGEX = /<meta name="csrf-token" content="(.*)">/;
 
 export namespace API {
@@ -46,7 +48,7 @@ export namespace API {
   export const LOGIN_CAPTCHA_IMAGE = `/lg4/captcha`;
   export const CONTEST = (cid: number) => `/contest/${cid}?_contentOnly=1`;
   export const LOGIN_ENDPOINT = `/do-auth/password`;
-  export const SEND_MAIL_2fa = `${apiURL}/verify/sendTwoFactorCode`;
+  export const SEND_MAIL_2FA = `/auth/motp/request`;
   export const LOGOUT = `/auth/logout`;
   export const FATE = `/index/ajax_punch`;
   export const FOLLOWED_BENBEN = (page: number) =>
@@ -56,7 +58,9 @@ export namespace API {
   export const BenbenReferer = 'https://www.luogu.com.cn/';
   export const BENBEN_POST = `${apiURL}/feed/postBenben`;
   export const BENBEN_DELETE = (id: number) => `${apiURL}/feed/delete/${id}`;
-  export const UNLOCK_ENDPOINT = `/do-auth/totp`;
+  export const UNLOCK_TOTP = `/do-auth/totp`;
+  export const UNLOCK_MAIL = `/do-auth/motp`;
+  export const JOIN_CONTEST = (cid: number) => `/contest/${cid}/join`;
   export const ranklist = (cid: number, page: number) =>
     `/fe/api/contest/scoreboard/${cid}?page=${page}`;
   export const TRAINLISTDETAIL = (id: number) =>
@@ -71,16 +75,18 @@ export namespace API {
     )}&_contentOnly=1`;
   export const SOLUTION_REFERER = (pid: string) => `/problem/solution/${pid}`;
   export const MYARTICLE = `/article/mine?_contentOnly`,
-    DELETE_ARTICLE = (lid: string) => `${apiURL}/article/delete/${lid}`,
-    EDIT_ARTICLE = (lid: string) => `${apiURL}/article/edit/${lid}`,
+    DELETE_ARTICLE = (lid: string) => `/article/${lid}/delete`,
+    EDIT_ARTICLE = (lid: string) => `/article/${lid}/editSubmit`,
+    EDITABLE_ARTICLE = (lid: string) => `/article/${lid}/edit?_contentOnly=1`,
     GET_ARTICLE = (lid: string) => `/article/${lid}?_contentOnly`,
     REQUEST_PROMOTION = (lid: string) => `/api/article/requestPromotion/${lid}`,
     WITHDRAW_PROMOTION = (lid: string) =>
       `/api/article/withdrawPromotion/${lid}`,
-    CREATE_ARTICLE = '/api/article/new';
-  export const VOTE_ARTICLE = (lid: string) => `/api/article/vote/${lid}`;
+    CREATE_ARTICLE = '/article/_newSubmit';
+  export const VOTE_ARTICLE = (lid: string) => `/article/${lid}/vote`;
   export const CSRF_TOKEN = `/ranking`;
   export const CLIENT_ID = `/auth/login`;
+  export const AUTH_CSRF_TOKEN = `/auth/login`;
 }
 
 declare module 'axios' {
@@ -229,16 +235,21 @@ export const getProblemData = async (pid: string, cid?: number) =>
       return x.data.data;
     });
 
+export const parseContestDataResponse = <T>(response: {
+  data?: T;
+  currentData?: T;
+}): T => {
+  const data = response.data ?? response.currentData;
+  if (data === undefined || data === null) throw new Error('比赛不存在');
+  return data;
+};
+
 export const searchContest = async (cid: number) =>
   axios
-    .get<DataResponse<ContestData>>(API.CONTEST(cid))
-    .then(res => res?.data?.currentData)
-    .then(async res => {
-      if ((res || null) === null) {
-        throw new Error('比赛不存在');
-      }
-      return res;
-    });
+    .get<
+      LentilleDataResponse<ContestData> | DataResponse<ContestData>
+    >(API.CONTEST(cid))
+    .then(res => parseContestDataResponse(res.data));
 
 export const getSolution = async (pid: string, page: number) =>
   axios
@@ -351,30 +362,44 @@ export const login = async (
         myInterceptors_notCheckCookie: true
       }
     )
-    .then(x => ({
-      ...x.data,
-      uid: praseCookie(x.headers['set-cookie']).uid
-    }));
+    .then(x => {
+      const cookies = praseCookie(x.headers['set-cookie']);
+      return {
+        ...x.data,
+        uid: cookies.uid,
+        clientID: cookies.clientID
+      };
+    });
 };
 
 export const joinContest = async (
   cid: number,
   body: { code?: string; unrated?: boolean }
-) => axios.post(`/fe/api/contest/join/${cid}`, body).then(() => {});
+) => axios.post(API.JOIN_CONTEST(cid), body).then(() => {});
 
-export const unlock = async (code: string, cookie?: Cookie) => {
-  return await axios.post<void>(
-    API.UNLOCK_ENDPOINT,
-    {
-      code
-    },
-    {
-      headers: {
-        'X-CSRF-Token': await csrfToken(cookie)
+export const unlock = async (
+  code: string,
+  type: 'totp' | 'mail',
+  cookie?: Cookie
+) => {
+  return await axios
+    .post<LoginResponse>(
+      type === 'mail' ? API.UNLOCK_MAIL : API.UNLOCK_TOTP,
+      {
+        code
       },
-      myInterceptors_cookie: cookie
-    }
-  );
+      {
+        headers: {
+          'X-CSRF-Token': await csrfToken(cookie, API.AUTH_CSRF_TOKEN)
+        },
+        myInterceptors_cookie: cookie,
+        myInterceptors_notCheckCookie: true
+      }
+    )
+    .then(response => ({
+      ...response.data,
+      ...praseCookie(response.headers['set-cookie'])
+    }));
 };
 
 export const getStatus = async () => {
@@ -398,10 +423,12 @@ export const getStatus = async () => {
 
 export const sendMail2fa = async (captcha: string, cookie?: Cookie) =>
   axios.post(
-    API.SEND_MAIL_2fa,
-    { captcha, endpointType: 1 },
+    API.SEND_MAIL_2FA,
+    { captcha },
     {
-      myInterceptors_cookie: cookie
+      params: { endpoint: 1 },
+      myInterceptors_cookie: cookie,
+      myInterceptors_notCheckCookie: true
     }
   );
 
@@ -553,6 +580,14 @@ export const voteArticle = async (lid: string, type: -1 | 0 | 1) =>
     }>(API.VOTE_ARTICLE(lid), {}, { params: { vote: type } })
     .then(x => (console.debug(x), x.data));
 
+export const resolveSubmissionProblem = (
+  problem: { pid: string; cid?: number },
+  monitoredContest?: number
+) => ({
+  ...problem,
+  cid: problem.cid ?? monitoredContest
+});
+
 export const parseProblemID = (name: string) => {
   const regexs = [
     /^(AT_\w*)\./i,
@@ -675,7 +710,7 @@ export const listMyArticles = async (params: {
       ).flat()
     ]),
   deleteArticle = async (lid: string) =>
-    axios.post<{ lid: string }>(API.DELETE_ARTICLE(lid)).then(x => x.data),
+    axios.post<{ lid: string }>(API.DELETE_ARTICLE(lid), {}).then(x => x.data),
   editArticle = async (lid: string, data: EditArticleRequest) =>
     axios
       .post<{ article: ArticleDetails }>(API.EDIT_ARTICLE(lid), data)
@@ -684,6 +719,27 @@ export const listMyArticles = async (params: {
     axios
       .get<LentilleDataResponse<ArticleData>>(API.GET_ARTICLE(lid))
       .then(x => x.data),
+  getEditableArticle = async (lid: string) =>
+    axios
+      .get<
+        LentilleDataResponse<{ article: ArticleDetails; isAdmin: boolean }>
+      >(API.EDITABLE_ARTICLE(lid))
+      .then(x => {
+        const article = x.data.data.article;
+        if (article.content === undefined)
+          throw new Error('可编辑文章响应缺少正文');
+        return {
+          ...x.data,
+          data: {
+            ...x.data.data,
+            article: {
+              ...article,
+              content: article.content,
+              top: article.top ?? 0
+            } satisfies EditableArticle
+          }
+        };
+      }),
   requestPromotion = async (lid: string) =>
     axios.post<void>(API.REQUEST_PROMOTION(lid)).then(x => x.data),
   withdrawPromotion = async (lid: string) =>
@@ -747,10 +803,13 @@ interface TagsResponse {
 
 export const fetchLuoguTags = async (): Promise<TagsResponse> => {
   try {
-    const res = await axios.get<TagsResponse>('https://www.luogu.com.cn/_lfe/tags/zh-CN', {
-      myInterceptors_notCheckCookie: true,
-      myInterceptors_cookie: null
-    });
+    const res = await axios.get<TagsResponse>(
+      'https://www.luogu.com.cn/_lfe/tags/zh-CN',
+      {
+        myInterceptors_notCheckCookie: true,
+        myInterceptors_cookie: null
+      }
+    );
     return res.data;
   } catch (err) {
     throw new Error('获取标签数据失败', { cause: err });

@@ -14,7 +14,13 @@ vi.mock('vscode', () => ({ default: {} }));
   }
 };
 
-const { parseProblemID, CSRF_TOKEN_REGEX } = await import('./api');
+const {
+  API,
+  parseContestDataResponse,
+  parseProblemID,
+  resolveSubmissionProblem,
+  CSRF_TOKEN_REGEX
+} = await import('./api');
 
 describe('CSRF_TOKEN_REGEX', () => {
   it('extracts CSRF token from meta tag', () => {
@@ -75,5 +81,51 @@ describe('parseProblemID', () => {
   it('is case insensitive for AT and CF', () => {
     expect(parseProblemID('at_abc001.cpp')).toBe('at_abc001');
     expect(parseProblemID('cf1234a.cpp')).toBe('cf1234a');
+  });
+});
+
+describe('API routes', () => {
+  it('uses current article and contest mutation routes', () => {
+    expect(API.CREATE_ARTICLE).toBe('/article/_newSubmit');
+    expect(API.EDIT_ARTICLE('abc')).toBe('/article/abc/editSubmit');
+    expect(API.EDITABLE_ARTICLE('abc')).toBe(
+      '/article/abc/edit?_contentOnly=1'
+    );
+    expect(API.DELETE_ARTICLE('abc')).toBe('/article/abc/delete');
+    expect(API.VOTE_ARTICLE('abc')).toBe('/article/abc/vote');
+    expect(API.JOIN_CONTEST(42)).toBe('/contest/42/join');
+    expect(API.AUTH_CSRF_TOKEN).toBe('/auth/login');
+  });
+});
+
+describe('parseContestDataResponse', () => {
+  const contest = { contest: { id: 42 } };
+
+  it('reads current Lentille responses', () => {
+    expect(parseContestDataResponse({ data: contest })).toBe(contest);
+  });
+
+  it('keeps compatibility with legacy responses', () => {
+    expect(parseContestDataResponse({ currentData: contest })).toBe(contest);
+  });
+
+  it('rejects responses without contest data', () => {
+    expect(() => parseContestDataResponse({})).toThrow('比赛不存在');
+  });
+});
+
+describe('resolveSubmissionProblem', () => {
+  it('uses contest mode for plain problem submissions', () => {
+    expect(resolveSubmissionProblem({ pid: 'P1001' }, 42)).toEqual({
+      pid: 'P1001',
+      cid: 42
+    });
+  });
+
+  it('keeps an explicit contest ID', () => {
+    expect(resolveSubmissionProblem({ pid: 'P1001', cid: 7 }, 42)).toEqual({
+      pid: 'P1001',
+      cid: 7
+    });
   });
 });
