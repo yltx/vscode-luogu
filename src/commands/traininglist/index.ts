@@ -3,7 +3,17 @@ import * as vscode from 'vscode';
 import { searchTrainingdetail, searchTraininglist } from '@/utils/api';
 import { getResourceFilePath } from '@/utils/html';
 import { showTrainDetails } from '@/utils/showTrainDetails';
-import { getUsernameColor, getUserSvg, getWebviewViewColumn } from '@/utils/workspaceUtils';
+import {
+  getUsernameColor,
+  getUserSvg,
+  getWebviewViewColumn
+} from '@/utils/workspaceUtils';
+import { getAcceptedCount, getTrainingCategories } from './trainingData';
+import type { ProblemSet, UserSummary } from 'luogu-api';
+
+type TrainingListItem = ProblemSet & {
+  provider: UserSummary | { id: number; name: string };
+};
 
 export default new SuperCommand({
   onCommand: 'traininglist',
@@ -55,9 +65,13 @@ export default new SuperCommand({
           message: {
             channel: message.channel,
             html:
-              message.channel === 0
-                ? await generateOfficialListHTML(message.keyword, message.page)
-                : await generateSelectedListHTML(message.keyword, message.page)
+              message.channel === 'select'
+                ? await generateSelectedListHTML(message.keyword, message.page)
+                : await generateOfficialListHTML(
+                    message.keyword,
+                    message.page,
+                    message.channel
+                  )
           }
         });
       } else if (message.type === 'search') {
@@ -65,9 +79,13 @@ export default new SuperCommand({
           message: {
             channel: message.channel,
             html:
-              message.channel === 0
-                ? await generateOfficialListHTML(message.keyword, 1)
-                : await generateSelectedListHTML(message.keyword, 1)
+              message.channel === 'select'
+                ? await generateSelectedListHTML(message.keyword, 1)
+                : await generateOfficialListHTML(
+                    message.keyword,
+                    1,
+                    message.channel
+                  )
           }
         });
       } else if (message.type === 'error') {
@@ -80,48 +98,26 @@ export default new SuperCommand({
 });
 
 const generategeneralHTML = async (webview: vscode.Webview) => {
+  const initialData = await searchTraininglist('official', '', 1);
+  const categories = getTrainingCategories(initialData);
+  const initialChannel = categories[0].key;
   return `
+  <!DOCTYPE html>
   <html lang="zh">
     <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link rel="stylesheet" href="${getResourceFilePath(
         webview,
-        'loader.css'
+        'training.css'
       )}">
-      <style>
-        pre {
-            margin: .5em 0 !important;
-            padding: .3em .5em !important;
-            border: #ddd solid 1px !important;
-            border-radius: 3px !important;
-            overflow: auto !important;
-            position: relative;
-        }
-        code {
-            font-size: .875em !important;
-            font-family: Courier New !important;
-        }
-        form {
-            display: inline-block;
-            flex-direction: row;
-            text-align: center;
-        }
-        input,label {
-            display: inline-block;
-        }
-        li {
-            float: left;
-            list-style: none
-        }
-        .btn-hover:hover {
-          background-color: rgb(0,195,255);
-        }
-      </style>
     </head>
     <body>
     <script>
         const vscode = acquireVsCodeApi();
-        let channel = 0;
+        let channel = ${JSON.stringify(initialChannel)};
         let page = 1;
+        let keyword = '';
 
         function showError(msg) {
           vscode.postMessage({type: 'error', message: msg});
@@ -129,7 +125,7 @@ const generategeneralHTML = async (webview: vscode.Webview) => {
 
         function load() {
           document.getElementById("search_btn").addEventListener("click", function() {
-            const keyword = document.getElementById("search").value;
+            keyword = document.getElementById("search").value;
             console.log("Search func get keyword:", keyword);
             vscode.postMessage({type: 'search', channel: channel, keyword: keyword});
           });
@@ -144,7 +140,7 @@ const generategeneralHTML = async (webview: vscode.Webview) => {
           document.getElementById("search").addEventListener("keypress", function(event) {
             if (event.key == "Enter") {
               event.preventDefault();
-              const keyword = document.getElementById("search").value;
+              keyword = document.getElementById("search").value;
               console.log("Search func get keyword:", keyword);
               vscode.postMessage({type: 'search', channel: channel, keyword: keyword});
             }
@@ -155,100 +151,88 @@ const generategeneralHTML = async (webview: vscode.Webview) => {
           window.addEventListener('message', event => {
             const message = event.data.message;
             console.log("JS Get message:", event.data.message);
-            if (message.channel == 0) document.getElementById("official").innerHTML = message.html;
-            else document.getElementById("select").innerHTML = message.html;
+            document.getElementById("training-list").innerHTML = message.html;
             load();
           });
           load();
         });
 
-        function changechannel() {
-          if (channel) {
-            document.getElementById("select").style.display = "none";
-            document.getElementById("official").style.display = "";
-            document.getElementById("user").style.cssText = "cursor:pointer;font-size: large;";
-            document.getElementById("office").style.cssText = "cursor:pointer;border-bottom: 2px solid var(--vscode-textLink-foreground);color: var(--vscode-textLink-foreground);font-size: large;";
-          } else {
-            document.getElementById("official").style.display = "none";
-            document.getElementById("select").style.display = "";
-            document.getElementById("office").style.cssText = "cursor:pointer;font-size: large;";
-            document.getElementById("user").style.cssText = "cursor:pointer;border-bottom: 2px solid var(--vscode-textLink-foreground);color: var(--vscode-textLink-foreground);font-size: large;";
-          }
-          channel = 1 - channel;
+        function changechannel(value) {
+          channel = value;
+          keyword = '';
+          document.getElementById("search").value = '';
+          vscode.postMessage({type: 'request', channel, page: 1, keyword});
         }
       </script>
-    <div style="margin-top: 2em;">
-    <div class="card padding-default">
-    <section>
-      <table style="border-collapse: collapse;" width="100%">
-        <tr>
-          <td style="text-align: left;" width="100%">
-            <span>
-              <h2 style='display: inline-block'>查找题单</h2>
-              <input style="border-radius:4px;border:1px solid #000;width:300px; margin:0 auto; box-shadow: 0 4px 6px rgba(50, 50, 93, .08), 0 1px 3px rgba(0, 0, 0, .05); transition: box-shadow .15s ease; padding: .5em;" type="text" id="search">
-              <button id="search_btn" class="btn-hover">搜索</button>
-            </span>
-          </td>
-        </tr>
-      </table>
-        <span style="cursor:pointer;border-bottom: 2px solid var(--vscode-textLink-foreground);color: var(--vscode-textLink-foreground); font-size: large;" title="官方精选" onclick="changechannel()" id="office">官方精选</span>
-      &nbsp;&nbsp;&nbsp;
-        <span style="cursor:pointer;font-size: large;" title="用户分享" onclick="changechannel()" id="user">用户分享</span>
-    </section>
-    </div>
-    <div class="card padding-default" style="margin-top: 2em;">
-    <section>
-      <div id="official">
-      ${await generateOfficialListHTML('', 1)}
-      </div>
-      <div id="select" style="display:none">
-      ${await generateSelectedListHTML('', 1)}
-      </div>
-    </section>
-    </div>
-    </div>
+    <main class="lg-page">
+      <header class="lg-header">
+        <h1 class="lg-title">题单广场</h1>
+        <p class="lg-subtitle">浏览洛谷官方课程与用户分享的精选题单。</p>
+      </header>
+      <section class="lg-panel lg-toolbar">
+        <div class="lg-field lg-field--search">
+          <label for="search">搜索题单</label>
+          <input class="lg-input" type="search" id="search" placeholder="输入题单名称或关键词">
+        </div>
+        <button id="search_btn" class="lg-button">搜索</button>
+        <div class="lg-field">
+          <label for="training-category">分类</label>
+          <select class="lg-select" id="training-category" onchange="changechannel(this.value)">
+          ${categories
+            .map(
+              category =>
+                `<option value="${category.key}">${category.name}</option>`
+            )
+            .join('')}
+          </select>
+        </div>
+      </section>
+      <section class="lg-panel">
+        <div id="training-list">
+      ${
+        initialChannel === 'select'
+          ? await generateSelectedListHTML('', 1)
+          : await generateOfficialListHTML('', 1, initialChannel)
+      }
+        </div>
+      </section>
+    </main>
     </body>
   </html>
   `;
 };
 
-const generateOfficialListHTML = async (keyword: string, page: number) => {
-  const data = await searchTraininglist('official', keyword, page);
+const generateOfficialListHTML = async (
+  keyword: string,
+  page: number,
+  channel = 'official'
+) => {
+  const data = await searchTraininglist(channel, keyword, page);
   const trainings = data['trainings'];
   const list = trainings?.['result'];
-  if (!list) return '<p>加载失败</p>';
-  const items: any[] = Array.isArray(list) ? list : Object.values(list);
-  const accepted = data['acCounts'] ?? data['acceptedCounts'];
-  console.log(data);
-  console.log(accepted);
+  if (!list) return '<div class="lg-empty">题单加载失败</div>';
+  const items = (
+    Array.isArray(list) ? list : Object.values(list)
+  ) as TrainingListItem[];
   let html = '';
-  html += '      <table style="border-collapse: collapse;" width="100%">\n';
-  html += '        <tr>\n';
-  html += '          <th style="text-align: left;">编号</th>\n';
-  html += '          <th style="text-align: left;">名称</th>\n';
-  html += '          <th style="text-align: left;">完成度</th>\n';
-  html += '          <th>题目数</th>\n';
-  html += '          <th>收藏数</th>\n';
-  html += '        </tr>\n';
+  html += '<div class="lg-table-wrap"><table class="lg-table"><thead><tr>\n';
+  html +=
+    '<th>编号</th><th>名称</th><th>完成度</th><th>题目数</th><th>收藏数</th>\n';
+  html += '</tr></thead><tbody>\n';
   for (let i = 0; i < items.length; i++) {
-    const item = items[i] as any;
-    html += '        <tr>\n';
-    html += `          <td style="text-align: left;">${item['id']}</td>\n`;
-    html += `          <td style="text-align: left;"><a href="#" class="detail_btn" data-id="${item['id']}">${
+    const item = items[i];
+    html += '<tr>\n';
+    html += `<td class="lg-number">${item['id']}</td>\n`;
+    html += `<td class="lg-name"><a href="#" class="detail_btn" data-id="${item['id']}">${
       item['name'] ?? item['title']
     }</a></td>\n`;
-    html += `          <td style="text-align: left;">\n
-            <progress value="${accepted[item['id']]}" max="${
-              item['problemCount']
-            }" style="height: 30px;width: 100px;" title="${
-              accepted[item['id']]
-            }/${item['problemCount']}"></progress>
-                     </td>\n`;
-    html += `          <td style="text-align: center;">${item['problemCount']}</td>\n`;
-    html += `          <td style="text-align: center;">${item['markCount']}</td>\n`;
-    html += '        </tr>\n';
+    const accepted = getAcceptedCount(data, item['id']);
+    html += `<td><div class="lg-progress-wrap"><progress class="lg-progress" value="${accepted}" max="${item['problemCount']}"></progress><span class="lg-progress-text">${accepted} / ${item['problemCount']}</span></div></td>\n`;
+    html += `<td class="lg-number">${item['problemCount']}</td>\n`;
+    html += `<td class="lg-number">${item['markCount']}</td>\n`;
+    html += '</tr>\n';
   }
-  html += '      </table>\n';
+  html += '</tbody></table></div>\n';
   html += `      <script>
       let pageOfficial = ${page};
       function turnOfficial(towards) {
@@ -264,7 +248,7 @@ const generateOfficialListHTML = async (keyword: string, page: number) => {
           pageOfficial -= towards;
           return;
         }
-        vscode.postMessage({type: 'request', channel: 'official', page: pageOfficial, keyword: ''});
+        vscode.postMessage({type: 'request', channel: ${JSON.stringify(channel)}, page: pageOfficial, keyword});
       }
       function gotokthofficial() {
         const id = parseInt(document.getElementById('KTHOFFICIAL').value);
@@ -273,24 +257,14 @@ const generateOfficialListHTML = async (keyword: string, page: number) => {
           return;
         }
         pageOfficial = id;
-        vscode.postMessage({type: 'request', channel: 'official', page: pageOfficial, keyword: ''});
+        vscode.postMessage({type: 'request', channel: ${JSON.stringify(channel)}, page: pageOfficial, keyword});
       }
       </script>
-      <div class="post-nav">
-        <table width="100%">
-          <tr>
-            <td style="text-align: left;" width="30%">
-              <p style="text-align: left;" class="post-nav-prev post-nav-item"><a href="#" onclick="turnOfficial(-1)" title="上一页">上一页</a></p>
-            </td>
-            <td style="text-align: center;" width="40%">
-              <input style="border-radius:4px;border:1px solid #000;width:300px; margin:0 auto; box-shadow: 0 4px 6px rgba(50, 50, 93, .08), 0 1px 3px rgba(0, 0, 0, .05); transition: box-shadow .15s ease; padding: .5em;" type="text" placeholder="输入要跳转到的页码" id="KTHOFFICIAL">
-              <button class="btn-hover" onclick="gotokthofficial()">跳转</button>
-            </td>
-            <td style="text-align: right;" width="30%">
-              <p style="text-align: right;" class="post-nav-next post-nav-item"><a href="#" onclick="turnOfficial(1)" title="下一页">下一页</a></p>
-            </td>
-          </tr>
-        </table>
+      <div class="lg-pagination">
+        <button class="lg-button lg-button--secondary" onclick="turnOfficial(-1)">上一页</button>
+        <input class="lg-input" type="number" min="1" placeholder="页码" id="KTHOFFICIAL">
+        <button class="lg-button lg-button--secondary" onclick="gotokthofficial()">跳转</button>
+        <button class="lg-button" onclick="turnOfficial(1)">下一页</button>
       </div>`;
   return html;
 };
@@ -298,35 +272,33 @@ const generateSelectedListHTML = async (keyword: string, page: number) => {
   const data = await searchTraininglist('select', keyword, page);
   const trainings = data['trainings'];
   const list = trainings?.['result'];
-  if (!list) return '<p>加载失败</p>';
-  const items: any[] = Array.isArray(list) ? list : Object.values(list);
+  if (!list) return '<div class="lg-empty">题单加载失败</div>';
+  const items = (
+    Array.isArray(list) ? list : Object.values(list)
+  ) as TrainingListItem[];
   console.log(data);
   let html = '';
-  html += '      <table style="border-collapse: collapse;" width="100%">\n';
-  html += '        <tr>\n';
-  html += '          <th style="text-align: left;">编号</th>\n';
-  html += '          <th style="text-align: left;">名称</th>\n';
-  html += '          <th>题目数</th>\n';
-  html += '          <th>收藏数</th>\n';
-  html += '          <th>创建者</th>\n';
-  html += '        </tr>\n';
+  html += '<div class="lg-table-wrap"><table class="lg-table"><thead><tr>\n';
+  html +=
+    '<th>编号</th><th>名称</th><th>题目数</th><th>收藏数</th><th>创建者</th>\n';
+  html += '</tr></thead><tbody>\n';
   for (let i = 0; i < items.length; i++) {
-    const item = items[i] as any;
-    html += '        <tr>\n';
-    html += `          <td style="text-align: left;">${item['id']}</td>\n`;
-    html += `          <td style="text-align: left;"><a href="#" class="detail_btn" data-id="${item['id']}">${
+    const item = items[i];
+    html += '<tr>\n';
+    html += `<td class="lg-number">${item['id']}</td>\n`;
+    html += `<td class="lg-name"><a href="#" class="detail_btn" data-id="${item['id']}">${
       item['name'] ?? item['title']
     }</a></td>\n`;
-    html += `          <td style="text-align: left;">${item['problemCount']}</td>\n`;
-    html += `          <td style="text-align: center;">${item['markCount']}</td>\n`;
-    html += `          <td style="text-align: center; font-weight: bold; color: ${getUsernameColor(
-      item['provider']['color']
+    html += `<td class="lg-number">${item['problemCount']}</td>\n`;
+    html += `<td class="lg-number">${item['markCount']}</td>\n`;
+    html += `<td class="lg-number" style="font-weight: bold; color: ${getUsernameColor(
+      'color' in item.provider ? item.provider.color : 'Gray'
     )};">${item['provider']['name']}${getUserSvg(
-      item['provider']['ccfLevel']
+      'ccfLevel' in item.provider ? item.provider.ccfLevel : 0
     )}</td>\n`;
-    html += '        </tr>\n';
+    html += '</tr>\n';
   }
-  html += '      </table>\n';
+  html += '</tbody></table></div>\n';
   html += `      <script>
       let pageSelected = ${page};
       function turnSelected(towards) {
@@ -342,7 +314,7 @@ const generateSelectedListHTML = async (keyword: string, page: number) => {
           pageSelected -= towards;
           return;
         }
-        vscode.postMessage({type: 'request', channel: 'select', page: pageSelected, keyword: ''});
+        vscode.postMessage({type: 'request', channel: 'select', page: pageSelected, keyword});
       }
       function gotokthselected() {
         const id = parseInt(document.getElementById('KTHSELECTED').value);
@@ -351,24 +323,14 @@ const generateSelectedListHTML = async (keyword: string, page: number) => {
           return;
         }
         pageSelected = id;
-        vscode.postMessage({type: 'request', channel: 'select', page: pageSelected, keyword: ''});
+        vscode.postMessage({type: 'request', channel: 'select', page: pageSelected, keyword});
       }
       </script>
-      <div class="post-nav">
-        <table width="100%">
-          <tr>
-            <td style="text-align: left;" width="30%">
-              <p style="text-align: left;" class="post-nav-prev post-nav-item"><a href="#" onclick="turnSelected(-1)" title="上一页">上一页</a></p>
-            </td>
-            <td style="text-align: center;" width="40%">
-              <input style="border-radius:4px;border:1px solid #000;width:300px; margin:0 auto; box-shadow: 0 4px 6px rgba(50, 50, 93, .08), 0 1px 3px rgba(0, 0, 0, .05); transition: box-shadow .15s ease; padding: .5em;" type="text" placeholder="输入要跳转到的页码" id="KTHSELECTED">
-              <button class="btn-hover" onclick="gotokthselected()">跳转</button>
-            </td>
-            <td style="text-align: right;" width="30%">
-              <p style="text-align: right;" class="post-nav-next post-nav-item"><a href="#" onclick="turnSelected(1)" title="下一页">下一页</a></p>
-            </td>
-          </tr>
-        </table>
+      <div class="lg-pagination">
+        <button class="lg-button lg-button--secondary" onclick="turnSelected(-1)">上一页</button>
+        <input class="lg-input" type="number" min="1" placeholder="页码" id="KTHSELECTED">
+        <button class="lg-button lg-button--secondary" onclick="gotokthselected()">跳转</button>
+        <button class="lg-button" onclick="turnSelected(1)">下一页</button>
       </div>`;
   return html;
 };

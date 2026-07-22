@@ -64,7 +64,7 @@ type SendMailCodeMessageType = WebviewMessage<
   WebviewResponseMessage<{ type: 'error' | undefined }>
 >;
 type Login2faMessageType = WebviewMessage<
-  WebviewRequestMessage<'2fa', { code: string }>,
+  WebviewRequestMessage<'2fa', { code: string; type: 'totp' | 'mail' }>,
   WebviewResponseMessage<{ type: 'error' | undefined }>
 >;
 type clearLoginCookieMessageType = WebviewMessage<
@@ -78,6 +78,10 @@ type checkCphMessageType = WebviewMessage<
 type JumpToCphMessageType = WebviewMessage<
   WebviewRequestMessage<'jumpToCph', void>,
   WebviewResponseMessage<void>
+>;
+type SubmitProblemMessageType = WebviewMessage<
+  WebviewRequestMessage<'submitProblem', void>,
+  WebviewResponseMessage<boolean>
 >;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,
@@ -126,6 +130,7 @@ type MessageTypes = MessageTypesBase<
     clearLoginCookieMessageType,
     checkCphMessageType,
     JumpToCphMessageType,
+    SubmitProblemMessageType,
     GetSolutionDetailsMessageType,
     VoteArticleMessageType,
     ContestRanklist,

@@ -24,7 +24,12 @@ export default async function showProblemWebview(data: ProblemData) {
   );
   useWebviewResponseHandle(panel.webview, {
     checkCph: checkCPH,
-    jumpToCph: () => sendCphMessage(data)
+    jumpToCph: () => sendCphMessage(data),
+    submitProblem: () =>
+      vscode.commands.executeCommand<boolean>('luogu.sumbitCode', {
+        pid: data.problem.pid,
+        cid: data.contest?.id
+      })
   });
   const jumpToCphListener = jumpToCphEventEmitter.event(() => {
     if (panel.active) sendCphMessage(data);

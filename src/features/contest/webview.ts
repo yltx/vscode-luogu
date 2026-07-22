@@ -58,7 +58,7 @@ export default function showContestWebview(data: ContestData) {
     },
     ContestJoin: async () => {
       const body: { code?: string; unrated?: boolean } = {};
-      if (ContestVisibilityTypes[data.contest.visibilityType].invitation) {
+      if (ContestVisibilityTypes[data.contest.visibility].invitation) {
         const code = await vscode.window.showInputBox({
           prompt: '请输入比赛邀请码',
           placeHolder: '邀请码'

@@ -51,6 +51,7 @@ export default async function showLoginView() {
           if (x.uid === undefined)
             throw new Error('Cookie not found in header');
           uid = x.uid;
+          if (x.clientID) clientID = x.clientID;
           return { type: x.locked ? ('2fa' as const) : undefined };
         })
         .then(x => {
@@ -96,9 +97,15 @@ export default async function showLoginView() {
           );
           return { type: 'error' };
         }),
-    '2fa': async ({ code }) =>
-      await unlock(code, { uid, clientID })
-        .then(() => ((successful = true), panel.dispose(), { type: undefined }))
+    '2fa': async ({ code, type }) =>
+      await unlock(code, type, { uid, clientID })
+        .then(result => {
+          if (result.uid) uid = result.uid;
+          if (result.clientID) clientID = result.clientID;
+          successful = true;
+          panel.dispose();
+          return { type: undefined };
+        })
         .catch(err => {
           if (isAxiosError(err) && err.response)
             vscode.window.showErrorMessage(err.response.data.errorMessage);

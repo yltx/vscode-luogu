@@ -191,6 +191,7 @@ function CookieLogin() {
 
 function Check2fa({ set2fa }: { set2fa: (data: boolean) => void }) {
   const [code, setCode] = useState('');
+  const [method, setMethod] = useState<'totp' | 'mail'>('totp');
   const [captcha, setCaptchaInput] = useState('');
   const [disableState, setDisableState] = useState(false);
   const [captchaImage, setCaptchaImage] = useState(DefaultCaptchaImage);
@@ -202,48 +203,77 @@ function Check2fa({ set2fa }: { set2fa: (data: boolean) => void }) {
   useEffect(() => void changeCaptchaImage(), []);
   return (
     <>
-      <p>请使用两步验证码解锁您的账户。</p>
-      <p>如不便访问两步验证设备，也可发送邮箱验证码。</p>
-      <form
-        onSubmit={async e => {
-          e.preventDefault();
-          setDisableState(true);
-          await send('SendMailCode', { captcha });
-          setDisableState(false);
-          changeCaptchaImage();
-        }}
-        className="form"
-      >
-        <div className="form-itemarea">
-          <div className="form-itemarea-input">
-            <VSCodeTextField
-              className="form-itemarea-input-textfield"
-              name="captcha"
-              placeholder="右侧图形验证码"
-              value={captcha}
-              onInput={e => setCaptchaInput(e.target.value)}
-            />
-            <a href="" onClick={() => changeCaptchaImage()}>
-              <img src={captchaImage} alt="captcha" className="captcha" />
-            </a>
-          </div>
-        </div>
-        <VSCodeButton type="submit" className="submit" disabled={disableState}>
-          发送邮箱验证码
+      <p>
+        {method === 'totp'
+          ? '请使用验证器中的动态验证码解锁您的账户。'
+          : '请先发送邮箱验证码，再使用收到的验证码解锁账户。'}
+      </p>
+      <div style={{ display: 'flex', gap: 5, marginBottom: 12 }}>
+        <VSCodeButton
+          appearance={method === 'totp' ? 'primary' : 'secondary'}
+          onClick={() => {
+            setMethod('totp');
+            setCode('');
+          }}
+        >
+          验证器验证码
         </VSCodeButton>
-      </form>
+        <VSCodeButton
+          appearance={method === 'mail' ? 'primary' : 'secondary'}
+          onClick={() => {
+            setMethod('mail');
+            setCode('');
+          }}
+        >
+          邮箱验证码
+        </VSCodeButton>
+      </div>
+      {method === 'mail' && (
+        <form
+          onSubmit={async e => {
+            e.preventDefault();
+            setDisableState(true);
+            await send('SendMailCode', { captcha });
+            setDisableState(false);
+            changeCaptchaImage();
+          }}
+          className="form"
+        >
+          <div className="form-itemarea">
+            <div className="form-itemarea-input">
+              <VSCodeTextField
+                className="form-itemarea-input-textfield"
+                name="captcha"
+                placeholder="右侧图形验证码"
+                value={captcha}
+                onInput={e => setCaptchaInput(e.target.value)}
+              />
+              <a href="" onClick={() => changeCaptchaImage()}>
+                <img src={captchaImage} alt="captcha" className="captcha" />
+              </a>
+            </div>
+          </div>
+          <VSCodeButton
+            type="submit"
+            className="submit"
+            disabled={disableState}
+          >
+            发送邮箱验证码
+          </VSCodeButton>
+        </form>
+      )}
       <br />
       <form
         onSubmit={async e => {
           e.preventDefault();
           setDisableState(true);
-          await send('2fa', { code });
+          await send('2fa', { code, type: method });
           setDisableState(false);
         }}
         className="form"
       >
         <div className="form-itemarea">
-          <label>两步验证码或邮箱验证码</label>
+          <label>{method === 'totp' ? '动态验证码' : '邮箱验证码'}</label>
           <div className="form-itemarea-input">
             <VSCodeTextField
               className="form-itemarea-input-textfield"

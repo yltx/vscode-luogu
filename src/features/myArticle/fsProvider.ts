@@ -2,7 +2,7 @@ import {
   createArticle,
   deleteArticle as deleteArticle,
   editArticle,
-  getArticle,
+  getEditableArticle,
   listMyAllArticles
 } from '@/utils/api';
 import { isAxiosError } from 'axios';
@@ -41,7 +41,7 @@ export default class myArticleFsProvider
     if (uri.query === '')
       return { type: vscode.FileType.Directory, size: 0, ctime: 0, mtime: 0 };
     try {
-      const res = (await getArticle(uri.query)).data.article;
+      const res = (await getEditableArticle(uri.query)).data.article;
       return {
         type: vscode.FileType.File,
         size: res.content.length,
@@ -67,7 +67,7 @@ export default class myArticleFsProvider
   async readFile(uri: vscode.Uri) {
     try {
       return new TextEncoder().encode(
-        (await getArticle(uri.query)).data.article.content
+        (await getEditableArticle(uri.query)).data.article.content
       );
     } catch (e) {
       throw Object.assign(
@@ -86,10 +86,8 @@ export default class myArticleFsProvider
     if (uri.query === '') throw vscode.FileSystemError.FileIsADirectory(uri);
     if (!options.overwrite) return;
     try {
-      const articleData = (await getArticle(uri.query)).data;
+      const articleData = (await getEditableArticle(uri.query)).data;
       const res = articleData.article;
-      if (!articleData.canEdit)
-        throw vscode.FileSystemError.NoPermissions(uri);
       if (res.promoteStatus === 2)
         if (
           (await vscode.window.showWarningMessage(
@@ -105,7 +103,7 @@ export default class myArticleFsProvider
         category: res.category,
         status: res.status,
         content: new TextDecoder().decode(content),
-        top: res.top
+        top: res.top ?? 0
       });
       this._onDidChangeFile.fire([
         { type: vscode.FileChangeType.Changed, uri }

@@ -1,5 +1,4 @@
 import SuperCommand from '../SuperCommand';
-import { fetch3kHomepage } from '@/utils/api';
 import { needLogin } from '@/utils/uiUtils';
 import * as vscode from 'vscode';
 
@@ -8,12 +7,13 @@ export default new SuperCommand({
   handle: async () => {
     await globalThis.luogu.waitinit;
     try {
-      const data = await fetch3kHomepage();
-      if (data.currentUser === undefined) {
+      const sessions = await globalThis.luogu.authProvider.getSessions();
+      if (sessions.length === 0) {
         needLogin();
         return;
       }
-      vscode.window.showInformationMessage(data.currentUser.name);
+      const user = await globalThis.luogu.authProvider.user();
+      vscode.window.showInformationMessage(`${user.name}（UID: ${user.uid}）`);
     } catch (err) {
       vscode.window.showErrorMessage('获取登录信息失败');
       vscode.window.showErrorMessage(`${err}`);

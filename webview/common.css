@@ -12,25 +12,25 @@ table {
   width: 100%;
   overflow: auto;
   word-break: keep-all;
-  margin: 10px;
+  margin: 10px 0;
 }
 
 th,
 td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--vscode-panel-border, #7f7f7f55);
   padding: 6px 13px;
 }
 
 blockquote {
   padding: 10px 20px;
   margin: 0 0 20px;
-  border-left: 5px solid #eee;
+  border-left: 4px solid var(--vscode-textLink-foreground, #3498db);
 }
 
 pre {
   margin: 0.5em 0;
   padding: 0.3em 0.5em;
-  border: #ddd solid 1px;
+  border: 1px solid var(--vscode-panel-border, #7f7f7f55);
   border-radius: 3px;
   overflow: auto;
   position: relative;
@@ -158,5 +158,6 @@ a {
 }
 
 article img {
-  background-color: white;
+  max-width: 100%;
+  height: auto;
 }

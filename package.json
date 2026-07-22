@@ -3,7 +3,7 @@
   "displayName": "vscode-luogu",
   "description": "Solve Luogu Problems in VSCode",
   "icon": "resources/img/luogu-normal.png",
-  "version": "4.13.0",
+  "version": "4.14.0",
   "license": "MIT",
   "publisher": "yltx",
   "engines": {
@@ -39,6 +39,11 @@
       {
         "command": "luogu.signin",
         "title": "登录洛谷账号(Signin)",
+        "category": "Luogu"
+      },
+      {
+        "command": "luogu.signout",
+        "title": "登出洛谷账号(Sign out)",
         "category": "Luogu"
       },
       {
@@ -111,6 +116,11 @@
         "command": "luogu.myarticle.refresh",
         "title": "刷新文章列表",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "luogu.myarticle.open",
+        "title": "打开我的专栏",
+        "category": "Luogu"
       },
       {
         "command": "luogu.myarticle.setShowMode",
@@ -353,7 +363,7 @@
         },
         {
           "command": "luogu.myarticle.new",
-          "when": "false"
+          "when": "luoguLoginStatus"
         },
         {
           "command": "luogu.myarticle.setSolutionFor",
@@ -493,11 +503,12 @@
             "暂无评定",
             "入门",
             "普及-",
-            "普及/提高-",
-            "普及+/提高",
+            "普及",
+            "普及+/提高-",
+            "提高",
             "提高+/省选-",
             "省选/NOI-",
-            "NOI/NOI+/CTSC"
+            "NOI/NOI+/CTS"
           ],
           "scope": "window",
           "description": "Default difficulty for random choose problem."
@@ -576,7 +587,7 @@
     "pack": "vsce package --allow-star-activation -o vscode-luogu.vsix",
     "vscode:prepublish": "npm run package",
     "build:icons": "node ./scripts/build-icons.mjs",
-    "prepackage": "del dist/",
+    "prepackage": "del-cli dist",
     "watch": "npm run build:icons && webpack --mode development --watch",
     "package": "npm run build:icons && webpack --mode production",
     "lint": "eslint .",

@@ -1,4 +1,5 @@
-import { submitCode } from '@/utils/api';
+import { resolveSubmissionProblem, submitCode } from '@/utils/api';
+import { getContestMonitor } from './contest/contestMonitor';
 import {
   askForLanguage,
   askForPid,
@@ -49,6 +50,7 @@ export default function registerSubmitFeature(
         }
         if ('type' in problem)
           problem = { pid: problem.pid, cid: problem.contest?.contestId };
+        problem = resolveSubmissionProblem(problem, getContestMonitor());
         const lang = await askForLanguage(
           editor.document.fileName.split('.').pop()!
         );

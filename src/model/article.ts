@@ -9,7 +9,7 @@ export default class ArticleData {
   constructor(article: import('luogu-api').ArticleDetails) {
     this.lid = article.lid;
     this.author = new UserInfoWithIcon(article.author);
-    this.content = article.content;
+    this.content = article.content ?? '';
     this.createTime = article.time * 1000;
     this.vote = { upvotes: article.upvote, voted: article.voted as -1 | 0 | 1 };
   }

@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { getScoreColor, formatTime } from './shared';
+import {
+  difficultyColor,
+  difficultyName,
+  formatTime,
+  getDifficulty,
+  getScoreColor
+} from './shared';
 
 describe('getScoreColor', () => {
   it('returns red for scores below 30', () => {
@@ -60,5 +66,30 @@ describe('formatTime', () => {
   it('accepts numeric timestamp', () => {
     const ts = fixedDate.getTime();
     expect(formatTime(ts, 'yyyy-MM-dd')).toBe('2024-01-15');
+  });
+});
+
+describe('problem difficulty', () => {
+  it('supports the current nine-level difficulty system', () => {
+    expect(difficultyName).toEqual([
+      '暂无评定',
+      '入门',
+      '普及-',
+      '普及',
+      '普及+/提高-',
+      '提高',
+      '提高+/省选-',
+      '省选/NOI-',
+      'NOI/NOI+/CTS'
+    ]);
+    expect(difficultyColor[5]).toBe('#13C2C2');
+    expect(difficultyColor[8]).toBe('#0E1D69');
+  });
+
+  it('falls back safely for unknown difficulty IDs', () => {
+    expect(getDifficulty(99)).toEqual({
+      name: '未知难度 (99)',
+      color: '#BFBFBF'
+    });
   });
 });
