@@ -7,6 +7,6 @@ describe('getLatestRecordId', () => {
   });
 
   it('returns the first record ID', () => {
-    expect(getLatestRecordId({ first: { id: 42 } as never })).toBe(42);
+    expect(getLatestRecordId({ 0: { id: 42 } as never })).toBe(42);
   });
 });
