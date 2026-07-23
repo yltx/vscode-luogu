@@ -603,7 +603,7 @@
     "@types/copy-paste": "^1.1.33",
     "@types/katex": "^0.16.5",
     "@types/markdown-it": "^13.0.4",
-    "@types/node": "^20.8.9",
+    "@types/node": "^20.19.43",
     "@types/picomatch": "^2.3.4",
     "@types/react": "^18.2.67",
     "@types/react-dom": "^18.2.22",
@@ -651,5 +651,5 @@
     "ws": "8.21.1"
   },
   "author": "",
-  "packageManager": "npm@*"
+  "packageManager": "npm@11.18.0"
 }
