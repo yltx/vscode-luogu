@@ -519,17 +519,6 @@ export const fetchUserBenben = async (page: number, user?: number) =>
     .get<{ feeds: List<Activity> }>(API.USER_BENBEN(page, user))
     .then(data => data.data);
 
-// 只需要请求用户犇犇时不带 cookie 就可以获得到全网犇犇了（？）
-export const fetchAllBenben = async (page: number) =>
-  axios
-    .get<{
-      feeds: List<Activity>;
-    }>(API.USER_BENBEN(page), {
-      myInterceptors_notCheckCookie: true,
-      myInterceptors_cookie: null
-    })
-    .then(data => data.data);
-
 export const postBenben = async (benbenText: string) =>
   axios
     .post<{ status: number; data: ActivityData }>(API.BENBEN_POST, {
