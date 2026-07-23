@@ -1,5 +1,23 @@
 # Change Log
 
+## 4.15.0 (Pre-release)
+
+- Security:
+  1. 加固认证初始化，避免持久化数据损坏或匿名 client ID 获取失败造成永久等待
+  2. 为 React Webview 增加统一 CSP、nonce、资源根目录和 initial state 转义
+  3. 为 React Webview 消息增加运行时 envelope、UUID 和 payload 校验
+  4. 串行化 CSRF token 生命周期，避免 session 切换和并发请求覆盖新状态
+- Fix:
+  1. 将评测 WebSocket 生命周期绑定到 panel，并完整清理连接超时和关闭竞态
+  2. 修复未登录私有犇犇持续转圈，并移除已关闭的全网动态入口
+  3. 统一命令成功、取消和失败返回契约，修复随机题 detached Promise
+  4. 修复空评测列表异常和浏览历史并发覆盖
+- Engineering:
+  1. 升级存在生产漏洞的运行时依赖，production audit 降至 0
+  2. 恢复 LF、lint、类型检查、测试和 production build 基线
+  3. 清理未使用依赖并消除 `ws` 可选 native accelerator 构建告警
+  4. 修复预发布流程：奇数 minor 发布到 Marketplace 预发布通道，偶数 minor 发布到正式通道
+
 ## 4.14.0
 
 - Fix:

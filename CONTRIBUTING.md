@@ -13,9 +13,15 @@
 
 ## 如何发布新版本
 
-代码全部修改完毕，已经准备好发布新版本时，先运行 `npm run pack` 确保插件可以正确打包，之后请在 `CHANGELOG.md` 中简要说明更新内容，并更新 `package.json` 中的版本号。
+代码全部修改完毕，已经准备好发布新版本时，先运行 `npm run pack` 确保插件可以正确打包，之后请在 `CHANGELOG.md` 中简要说明更新内容，并同步更新 `package.json` 和 `package-lock.json` 中的版本号。
 
-将更新了版本号的代码上传到GitHub并在QQ群里通知其他开发者经同意后，在GitHub上创建新的Release，并编写发布说明。Release发布后，GitHub action将自动打包，上传到release附件与VSCode Marketplace中。
+版本号使用以下约定：
+
+- 正式版本使用偶数 minor，例如 `4.14.0`、`4.16.0`。
+- 预发布版本使用奇数 minor，例如 `4.15.0`、`4.17.0`。
+- Git tag 必须是 `v` 加 package 版本，例如 `v4.15.0`。
+
+将更新了版本号的代码上传到 GitHub 并在 QQ 群里通知其他开发者。经同意后创建 GitHub Release 并编写发布说明：奇数 minor 必须勾选 **Set as a pre-release**，偶数 minor 不得勾选。Release 发布后，GitHub Actions 会校验 tag、package 版本和发布通道，然后打包、上传 Release 附件并发布到对应的 VS Code Marketplace 正式或预发布通道。
 
 ## 编写时需要注意的问题
 

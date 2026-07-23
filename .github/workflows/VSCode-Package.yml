@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Validate
-        run: npm run typecheck && npm run test
+        run: npm run ci
       - name: Package
         run: npm run pack
       - name: Upload Package

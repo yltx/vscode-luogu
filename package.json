@@ -3,7 +3,7 @@
   "displayName": "vscode-luogu",
   "description": "Solve Luogu Problems in VSCode",
   "icon": "resources/img/luogu-normal.png",
-  "version": "4.14.0",
+  "version": "4.15.0",
   "license": "MIT",
   "publisher": "yltx",
   "engines": {
@@ -29,7 +29,6 @@
     "OI",
     "洛谷"
   ],
-  "preview": true,
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -584,7 +583,7 @@
     ]
   },
   "scripts": {
-    "pack": "vsce package --allow-star-activation -o vscode-luogu.vsix",
+    "pack": "node scripts/package-extension.mjs",
     "vscode:prepublish": "npm run package",
     "build:icons": "node ./scripts/build-icons.mjs",
     "prepackage": "del-cli dist",
@@ -595,9 +594,10 @@
     "prettier": "npx prettier . -w",
     "typecheck": "tsc --noEmit -p tsconfig.check.json",
     "test": "vitest run",
+    "test:release": "node --test scripts/release-policy.test.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "ci": "npm run lint && npm run typecheck && npm run test"
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run test:release"
   },
   "devDependencies": {
     "@types/katex": "^0.16.5",
