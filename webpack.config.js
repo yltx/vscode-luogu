@@ -15,7 +15,9 @@ function getBaseConfig(mode) {
   return {
     mode,
     externals: {
-      vscode: 'commonjs vscode'
+      vscode: 'commonjs vscode',
+      bufferutil: 'commonjs bufferutil',
+      'utf-8-validate': 'commonjs utf-8-validate'
     },
     devtool: mode === 'development' && 'inline-source-map',
     resolve: {
