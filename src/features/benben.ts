@@ -6,7 +6,7 @@ import {
   postBenben,
   deleteBenben
 } from '@/utils/api';
-import { getDistFilePath } from '@/utils/html';
+import { getReactWebviewHtml } from '@/utils/html';
 import * as vscode from 'vscode';
 import type BenbenData from '@/model/benben';
 import { getUsernameColor, getWebviewViewColumn } from '@/utils/workspaceUtils';
@@ -183,28 +183,16 @@ export default function registerBenben(context: vscode.ExtensionContext) {
         {
           enableScripts: true,
           retainContextWhenHidden: true,
-          localResourceRoots: [
-            vscode.Uri.file(globalThis.resourcesPath),
-            vscode.Uri.file(globalThis.distPath)
-          ]
+          localResourceRoots: [vscode.Uri.file(globalThis.distPath)]
         }
       );
       const userinfoCache =
         mode === '我关注的' ? new Map<number, UserSummary>() : undefined;
       const initHTML = () => {
-        panel.webview.html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body>
-        <script defer src=${getDistFilePath(panel.webview, 'webview-benben.js')}></script>
-        <div id="app"></div>
-        </body>
-        </html>
-    `;
+        panel.webview.html = getReactWebviewHtml(
+          panel.webview,
+          'webview-benben.js'
+        );
       };
       useWebviewResponseHandle(panel.webview, {
         BenbenUpdate: data => {

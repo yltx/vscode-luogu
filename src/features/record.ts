@@ -1,8 +1,11 @@
 import * as vscode from 'vscode';
 import { fetchRecords, fetchResult } from '@/utils/api';
-import { getDistFilePath } from '@/utils/html';
+import { getReactWebviewHtml } from '@/utils/html';
 import { createWebsocket, WebsocketSchema } from '@/utils/websocket';
-import { processAxiosError, getWebviewViewColumn } from '@/utils/workspaceUtils';
+import {
+  processAxiosError,
+  getWebviewViewColumn
+} from '@/utils/workspaceUtils';
 import { RecordData } from 'luogu-api';
 import { MessageTypes } from '@w/views/record/data';
 
@@ -14,30 +17,16 @@ async function record(record: RecordData) {
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [
-        vscode.Uri.file(globalThis.resourcesPath),
-        vscode.Uri.file(globalThis.distPath)
-      ],
+      localResourceRoots: [vscode.Uri.file(globalThis.distPath)],
       enableCommandUris: [
         'luogu.searchProblem',
         'luogu.openUntitledTextDocument'
       ]
     }
   );
-  panel.webview.html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="application/json" id="lentille-context">${JSON.stringify(record satisfies RecordData)}</script>
-    </head>
-    <body>
-    <script defer src=${getDistFilePath(panel.webview, 'webview-record.js')}></script>
-    <div id="app"></div>
-    </body>
-    </html>
-  `;
+  panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-record.js', {
+    'lentille-context': record satisfies RecordData
+  });
   if (record.record.status === 0 || record.record.status === 1)
     connectWebsocket(record.record.id, panel);
 }
