@@ -46,7 +46,7 @@ export default function registerContest(context: vscode.ExtensionContext) {
           },
           (e: unknown) => {
             processAxiosError('查找比赛')(e);
-            return new Error('Error when fetch contest', { cause: e });
+            return false;
           }
         );
       }

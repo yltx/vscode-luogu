@@ -45,7 +45,7 @@ export default function registerViewProblem(context: vscode.ExtensionContext) {
           })
           .catch((e: unknown) => {
             processAxiosError('查找题目')(e);
-            return new Error('Error when fetch problem', { cause: e });
+            return false;
           });
       }
     ),

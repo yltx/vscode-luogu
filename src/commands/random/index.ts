@@ -30,6 +30,7 @@ export default new SuperCommand({
           return v === -1 || !v ? 0 : v;
         })
       : getSelectedDifficulty(selectedDifficulty);
+    if (userdifficulty === undefined) return false;
     const selectedProblemset = vscode.workspace
       .getConfiguration('luogu')
       .get<string>('defaultProblemSet')!;
@@ -50,50 +51,44 @@ export default new SuperCommand({
           return v === null || !v ? '' : v;
         })
       : getSelectedProblemset(selectedProblemset);
-    axios
-      .get(
-        `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=1&_contentOnly=1`
-      )
-      .then(res => res.data)
-      .then(async res => {
-        if (res.code !== 200) {
-          throw new Error(res.currentData.errorMessage);
-        }
-        console.log(res);
-        const problemCount = res['currentData']['problems']['count'];
-        const pageCount = Math.ceil(problemCount / 50);
-        const randPage = Math.floor(Math.random() * pageCount) + 1;
+    if (userProblemset === undefined) return false;
 
-        await axios
-          .get(
-            `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=${randPage}&_contentOnly=1`
-          )
-          .then(res => res.data)
-          .then(async res => {
-            if (res.code !== 200) {
-              throw new Error(res.currentData.errorMessage);
-            }
-            const randNum = Math.floor(
-              Math.random() * Math.min(problemCount - 50 * (randPage - 1), 50)
-            );
-            console.log(randNum);
-            console.log(
-              res['currentData']['problems']['result'][randNum]['pid']
-            );
-            vscode.commands.executeCommand('luogu.searchProblem', {
-              pid: res['currentData']['problems']['result'][randNum]['pid']
-            });
-            return;
-          });
-      })
-      .catch(err => {
-        if (err.response) {
-          throw err.response.data;
-        } else if (err.request) {
-          throw new Error('请求超时，请重试');
-        } else {
-          throw err;
-        }
+    try {
+      const firstPage = await axios
+        .get(
+          `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=1&_contentOnly=1`
+        )
+        .then(res => res.data);
+      if (firstPage.code !== 200)
+        throw new Error(firstPage.currentData.errorMessage);
+
+      const problemCount = firstPage.currentData.problems.count;
+      const pageCount = Math.ceil(problemCount / 50);
+      const randPage = Math.floor(Math.random() * pageCount) + 1;
+      const page = await axios
+        .get(
+          `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=${randPage}&_contentOnly=1`
+        )
+        .then(res => res.data);
+      if (page.code !== 200) throw new Error(page.currentData.errorMessage);
+
+      const randNum = Math.floor(
+        Math.random() * Math.min(problemCount - 50 * (randPage - 1), 50)
+      );
+      await vscode.commands.executeCommand('luogu.searchProblem', {
+        pid: page.currentData.problems.result[randNum].pid
       });
+      return true;
+    } catch (err) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.errorMessage ||
+          (err.request ? '请求超时，请重试' : err.message)
+        : err instanceof Error
+          ? err.message
+          : '未知错误';
+      vscode.window.showErrorMessage(`随机题目时出现错误：${message}`);
+      console.error('Error when fetching a random problem', err);
+      return false;
+    }
   }
 });
