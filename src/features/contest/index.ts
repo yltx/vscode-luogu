@@ -20,8 +20,8 @@ export default function registerContest(context: vscode.ExtensionContext) {
           contestId = parseInt(s);
         }
         return await searchContest(contestId).then(
-          contestData => {
-            globalThis.luogu.historyTreeviewProvider.addItem({
+          async contestData => {
+            await globalThis.luogu.historyTreeviewProvider.addItem({
               type: 'contest',
               contestId: contestData.contest.id,
               title: contestData.contest.name,

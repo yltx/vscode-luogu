@@ -12,8 +12,9 @@ export default class historyTreeviewProvider
 {
   constructor(
     protected getStorage: () => MaybeThenable<HistoryItem[]>,
-    protected setStorage: (items: HistoryItem[]) => void
+    protected setStorage: (items: HistoryItem[]) => MaybeThenable<void>
   ) {}
+  private storageQueue = Promise.resolve();
   static getItemLabel(element: HistoryItem) {
     return element.type === 'problem'
       ? `${element.pid} ${element.title}` +
@@ -86,6 +87,7 @@ export default class historyTreeviewProvider
     throw new TypeError('Unknown history element type', { cause: element });
   }
   async getChildren() {
+    await this.storageQueue;
     return [...(await this.getStorage())].reverse();
   }
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
@@ -97,22 +99,33 @@ export default class historyTreeviewProvider
     this._onDidChangeTreeData.dispose();
   }
   clear() {
-    this.setStorage([]);
-    this.refresh();
+    return this.updateStorage(() => []);
   }
-  async addItem(item: HistoryItem) {
-    const dat = (await this.getStorage()).filter(
-      x =>
-        historyTreeviewProvider.getItemLabel(item) !==
-        historyTreeviewProvider.getItemLabel(x)
-    );
-    dat.push(item);
-    const maxLength =
-      vscode.workspace
-        .getConfiguration('luogu')
-        .get<number>('maxHistoryLength') ?? 256;
-    if (dat.length > maxLength) dat.splice(0, dat.length - maxLength);
-    this.setStorage(dat);
-    this.refresh();
+  addItem(item: HistoryItem) {
+    return this.updateStorage(items => {
+      const dat = items.filter(
+        x =>
+          historyTreeviewProvider.getItemLabel(item) !==
+          historyTreeviewProvider.getItemLabel(x)
+      );
+      dat.push(item);
+      const maxLength =
+        vscode.workspace
+          .getConfiguration('luogu')
+          .get<number>('maxHistoryLength') ?? 256;
+      if (dat.length > maxLength) dat.splice(0, dat.length - maxLength);
+      return dat;
+    });
+  }
+  updateStorage(
+    transform: (items: HistoryItem[]) => MaybeThenable<HistoryItem[]>
+  ) {
+    const update = async () => {
+      const items = await transform([...(await this.getStorage())]);
+      await this.setStorage(items);
+      this.refresh();
+    };
+    this.storageQueue = this.storageQueue.then(update, update);
+    return this.storageQueue;
   }
 }

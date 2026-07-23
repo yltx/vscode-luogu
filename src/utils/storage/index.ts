@@ -31,7 +31,7 @@ export function setStorage<K extends keyof schemas>(
   key: K,
   value: result[K]
 ) {
-  context.globalState.update(key, {
+  return context.globalState.update(key, {
     version: transformers[key].length - 1,
     data: value
   });
