@@ -1,0 +1,12 @@
+import { describe, expect, it } from 'vitest';
+import { getLatestRecordId } from './recordList';
+
+describe('getLatestRecordId', () => {
+  it('returns undefined for an empty record list', () => {
+    expect(getLatestRecordId({})).toBeUndefined();
+  });
+
+  it('returns the first record ID', () => {
+    expect(getLatestRecordId({ first: { id: 42 } as never })).toBe(42);
+  });
+});

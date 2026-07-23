@@ -8,6 +8,7 @@ import {
 } from '@/utils/workspaceUtils';
 import { RecordData } from 'luogu-api';
 import { MessageTypes } from '@w/views/record/data';
+import { getLatestRecordId } from './recordList';
 
 type RecordWebsocket = Awaited<
   ReturnType<typeof createWebsocket<WebsocketSchema.RecordTrack>>
@@ -142,10 +143,13 @@ export default function registerRecord(context: vscode.ExtensionContext) {
         processAxiosError('获取上次提交记录')
       );
       if (records === undefined) return;
-      vscode.commands.executeCommand(
-        'luogu.record',
-        Object.values(records.result)[0].id
-      );
+      const rid = getLatestRecordId(records.result);
+      if (rid === undefined) {
+        vscode.window.showInformationMessage('暂无提交记录');
+        return false;
+      }
+      await vscode.commands.executeCommand('luogu.record', rid);
+      return true;
     })
   );
 }
