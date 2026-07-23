@@ -12,6 +12,7 @@ import { getUsernameColor, getWebviewViewColumn } from '@/utils/workspaceUtils';
 import useWebviewResponseHandle from '@/utils/webviewResponse';
 import { Activity, UserSummary } from 'luogu-api';
 import { needLogin } from '@/utils/uiUtils';
+import { benbenModeRequiresLogin, BenbenMode } from './benbenMode';
 
 function isError(x: unknown): x is Error {
   return (
@@ -59,7 +60,7 @@ async function getFollowedBenben(
 async function getUserBenben(page = 1, user?: number) {
   const res = (await fetchUserBenben(page, user)).feeds.result;
   const me = (await globalThis.luogu.authProvider.user()).uid;
-  if (me === 0) {
+  if (user === undefined && me === 0) {
     needLogin();
     throw new Error('未登录');
   }
@@ -104,7 +105,7 @@ async function getMode() {
     if (s === '') input.items = [{ label: '我发布的' }, { label: '我关注的' }];
     else input.items = [{ label: `用户 ${s} 的动态`, id: s }];
   });
-  return new Promise<string | 1 | 2 | undefined>(resolve => {
+  return new Promise<BenbenMode | undefined>(resolve => {
     input.onDidChangeSelection(e => {
       resolve(
         e[0].label === '我关注的' ? 1 : e[0].label === '我发布的' ? 2 : e[0].id
@@ -124,6 +125,13 @@ export default function registerBenben(context: vscode.ExtensionContext) {
       await globalThis.luogu.waitinit;
       const mode = await getMode();
       if (mode === undefined) return;
+      if (
+        benbenModeRequiresLogin(mode) &&
+        (await globalThis.luogu.authProvider.user()).uid === 0
+      ) {
+        needLogin();
+        return;
+      }
       const user =
         typeof mode === 'string'
           ? (await searchUser(mode)).users[0]
