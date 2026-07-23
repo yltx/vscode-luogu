@@ -600,11 +600,9 @@
     "ci": "npm run lint && npm run typecheck && npm run test"
   },
   "devDependencies": {
-    "@types/copy-paste": "^1.1.33",
     "@types/katex": "^0.16.5",
     "@types/markdown-it": "^13.0.4",
     "@types/node": "^20.19.43",
-    "@types/picomatch": "^2.3.4",
     "@types/react": "^18.2.67",
     "@types/react-dom": "^18.2.22",
     "@types/vscode": "^1.75.0",
@@ -615,7 +613,6 @@
     "@vscode/vsce": "^3.6.2",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "css-loader": "^6.11.0",
-    "css-minimizer-webpack-plugin": "^7.0.0",
     "del-cli": "^5.1.0",
     "eslint": "^8.50.0",
     "eslint-plugin-prettier": "^5.0.1",
@@ -628,13 +625,11 @@
     "vitest": "^4.1.7",
     "webfont": "^11.2.26",
     "webpack": "5.108.4",
-    "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-brands-svg-icons": "^7.1.0",
-    "@fortawesome/free-regular-svg-icons": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.0",
     "@vscode/markdown-it-katex": "^1.0.3",

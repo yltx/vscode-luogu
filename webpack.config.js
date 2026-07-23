@@ -46,11 +46,7 @@ function getBaseConfig(mode) {
             ]
           }
         : {},
-    plugins: [
-      // new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)({
-      //   analyzerPort: 'auto'
-      // })
-    ]
+    plugins: []
   };
 }
 
@@ -83,10 +79,7 @@ function getExtensionConfig(mode) {
         }
       ]
     },
-    plugins: [
-      // @ts-ignore
-      // new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)()
-    ]
+    plugins: []
   };
 }
 
