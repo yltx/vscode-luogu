@@ -25,78 +25,130 @@ export default class LuoguAuthProvider
   private cacheLock: Promise<void>;
   private status: boolean = false;
   constructor(private readonly secretStorage: vscode.SecretStorage) {
-    let finishlock = () => {};
     this.cache = {} as LuoguSession;
-    this.cacheLock = new Promise(resolve => (finishlock = resolve));
-    this.secretStorage.get(LuoguAuthProvider.SecretKey).then(async x => {
-      if (x) {
-        const parsed = JSON.parse(x);
-        try {
-          const valid = await checkCookie({
-            uid: +parsed.account.id,
-            clientID: parsed.accessToken
-          });
-          if (!valid) {
-            await this.secretStorage.delete(LuoguAuthProvider.SecretKey);
-            this.cache = new LuoguSession({
-              uid: 0,
-              clientID: await genClientID(),
-              name: ''
-            });
-            vscode.commands.executeCommand('setContext', 'luoguLoginStatus', false);
-            finishlock();
-            return;
-          }
-        } catch {
-          // Network error — keep the session, validate later
-        }
-        this.cache = parsed;
-        this.status = true;
-        vscode.commands.executeCommand('setContext', 'luoguLoginStatus', true);
-      } else {
-        this.cache = new LuoguSession({
-          uid: 0,
-          clientID: await genClientID(),
-          name: ''
-        });
-        vscode.commands.executeCommand('setContext', 'luoguLoginStatus', false);
-      }
-      finishlock();
-    });
-    this.secretStorage.onDidChange(async e => {
-      let finishlock = () => {};
-      this.cacheLock = new Promise(resolve => (finishlock = resolve));
+    this.cacheLock = this.initialize();
+    this.secretStorage.onDidChange(e => {
       if (e.key !== LuoguAuthProvider.SecretKey) return;
-      const x = await this.secretStorage.get(LuoguAuthProvider.SecretKey);
-      if (x)
-        this._sessionChangeEmitter.fire({
-          added: [(this.cache = JSON.parse(x))],
-          removed: [],
-          changed: []
-        }),
-          vscode.commands.executeCommand(
-            'setContext',
-            'luoguLoginStatus',
-            true
-          );
-      else if (this.cache)
-        this._sessionChangeEmitter.fire({
-          added: [],
-          changed: [],
-          removed: [this.cache]
-        }),
-          (this.cache = new LuoguSession({
-            uid: 0,
-            clientID: await genClientID(),
-            name: ''
-          })),
-          vscode.commands.executeCommand(
-            'setContext',
-            'luoguLoginStatus',
-            false
-          );
-      finishlock();
+      this.cacheLock = this.cacheLock.then(
+        () => this.reloadSession(),
+        () => this.reloadSession()
+      );
     });
+  }
+  private async initialize() {
+    const stored = await this.secretStorage.get(LuoguAuthProvider.SecretKey);
+    if (!stored) {
+      await this.setAnonymousSession();
+      return;
+    }
+
+    let session: LuoguSession;
+    try {
+      session = this.parseSession(stored);
+    } catch {
+      await this.secretStorage.delete(LuoguAuthProvider.SecretKey);
+      await this.setAnonymousSession();
+      return;
+    }
+
+    try {
+      const valid = await checkCookie({
+        uid: +session.account.id,
+        clientID: session.accessToken
+      });
+      if (!valid) {
+        await this.secretStorage.delete(LuoguAuthProvider.SecretKey);
+        await this.setAnonymousSession();
+        return;
+      }
+    } catch {
+      // Network error: keep the session and validate it on the next request.
+    }
+
+    this.cache = session;
+    this.status = true;
+    await vscode.commands.executeCommand(
+      'setContext',
+      'luoguLoginStatus',
+      true
+    );
+  }
+  private async reloadSession() {
+    const stored = await this.secretStorage.get(LuoguAuthProvider.SecretKey);
+    if (stored) {
+      let session: LuoguSession;
+      try {
+        session = this.parseSession(stored);
+      } catch {
+        await this.secretStorage.delete(LuoguAuthProvider.SecretKey);
+        if (this.status) {
+          const removed = this.cache;
+          await this.setAnonymousSession();
+          this._sessionChangeEmitter.fire({
+            added: [],
+            changed: [],
+            removed: [removed]
+          });
+        }
+        return;
+      }
+
+      const previous = this.status ? this.cache : undefined;
+      this.cache = session;
+      this.status = true;
+      await vscode.commands.executeCommand(
+        'setContext',
+        'luoguLoginStatus',
+        true
+      );
+      this._sessionChangeEmitter.fire({
+        added: previous ? [] : [session],
+        removed: [],
+        changed: previous ? [session] : []
+      });
+      return;
+    }
+
+    if (!this.status) return;
+    const removed = this.cache;
+    await this.setAnonymousSession();
+    this._sessionChangeEmitter.fire({
+      added: [],
+      changed: [],
+      removed: [removed]
+    });
+  }
+  private parseSession(value: string): LuoguSession {
+    const parsed: unknown = JSON.parse(value);
+    if (
+      typeof parsed !== 'object' ||
+      parsed === null ||
+      !('accessToken' in parsed) ||
+      typeof parsed.accessToken !== 'string' ||
+      !('account' in parsed) ||
+      typeof parsed.account !== 'object' ||
+      parsed.account === null ||
+      !('id' in parsed.account) ||
+      typeof parsed.account.id !== 'string' ||
+      !('label' in parsed.account) ||
+      typeof parsed.account.label !== 'string'
+    ) {
+      throw new Error('Invalid stored Luogu session');
+    }
+    return parsed as LuoguSession;
+  }
+  private async setAnonymousSession() {
+    this.cache = new LuoguSession({
+      uid: 0,
+      clientID: await genClientID(),
+      name: ''
+    });
+    this.status = false;
+    await vscode.commands.executeCommand(
+      'setContext',
+      'luoguLoginStatus',
+      false
+    );
   }
   get onDidChangeSessions(): vscode.Event<vscode.AuthenticationProviderAuthenticationSessionsChangeEvent> {
     return this._sessionChangeEmitter.event;

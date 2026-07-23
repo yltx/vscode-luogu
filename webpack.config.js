@@ -15,7 +15,9 @@ function getBaseConfig(mode) {
   return {
     mode,
     externals: {
-      vscode: 'commonjs vscode'
+      vscode: 'commonjs vscode',
+      bufferutil: 'commonjs bufferutil',
+      'utf-8-validate': 'commonjs utf-8-validate'
     },
     devtool: mode === 'development' && 'inline-source-map',
     resolve: {
@@ -44,11 +46,7 @@ function getBaseConfig(mode) {
             ]
           }
         : {},
-    plugins: [
-      // new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)({
-      //   analyzerPort: 'auto'
-      // })
-    ]
+    plugins: []
   };
 }
 
@@ -81,10 +79,7 @@ function getExtensionConfig(mode) {
         }
       ]
     },
-    plugins: [
-      // @ts-ignore
-      // new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)()
-    ]
+    plugins: []
   };
 }
 

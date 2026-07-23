@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getDistFilePath } from '@/utils/html';
+import { getReactWebviewHtml } from '@/utils/html';
 import { getWebviewViewColumn } from '@/utils/workspaceUtils';
 import { ContestData } from 'luogu-api';
 import useWebviewResponseHandle from '@/utils/webviewResponse';
@@ -20,27 +20,15 @@ export default function showContestWebview(data: ContestData) {
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [
-        vscode.Uri.file(globalThis.resourcesPath),
-        vscode.Uri.file(globalThis.distPath)
-      ],
+      localResourceRoots: [vscode.Uri.file(globalThis.distPath)],
       enableCommandUris: ['luogu.searchProblem']
     }
   );
-  panel.webview.html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="application/json" id="lentille-context">${JSON.stringify(data)}</script>
-    </head>
-    <body>
-    <script defer src=${getDistFilePath(panel.webview, 'webview-contest.js')}></script>
-    <div id="app"></div>
-    </body>
-    </html>
-  `;
+  panel.webview.html = getReactWebviewHtml(
+    panel.webview,
+    'webview-contest.js',
+    { 'lentille-context': data }
+  );
   useWebviewResponseHandle(panel.webview, {
     ContestRanklist: ({ page }) =>
       getRanklist(data.contest.id, page).catch(e => {

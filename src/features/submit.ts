@@ -67,7 +67,7 @@ export default function registerSubmitFeature(
           return true;
         } catch (e) {
           processAxiosError('提交代码')(e);
-          return new Error('Error when submit', { cause: e });
+          return false;
         }
       }
     )

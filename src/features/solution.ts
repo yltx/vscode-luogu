@@ -1,8 +1,11 @@
 import * as vscode from 'vscode';
 import type { ArticleDetails, List } from 'luogu-api';
 import { getSolution, voteArticle } from '@/utils/api';
-import { getDistFilePath } from '@/utils/html';
-import { processAxiosError, getWebviewViewColumn } from '@/utils/workspaceUtils';
+import { getReactWebviewHtml } from '@/utils/html';
+import {
+  processAxiosError,
+  getWebviewViewColumn
+} from '@/utils/workspaceUtils';
 import useWebviewResponseHandle from '@/utils/webviewResponse';
 import ArticleData from '@/model/article';
 
@@ -45,10 +48,7 @@ export default function registerSolutionFeature(
             {
               enableScripts: true,
               retainContextWhenHidden: true,
-              localResourceRoots: [
-                vscode.Uri.file(globalThis.resourcesPath),
-                vscode.Uri.file(globalThis.distPath)
-              ]
+              localResourceRoots: [vscode.Uri.file(globalThis.distPath)]
             }
           );
           useWebviewResponseHandle(panel.webview, {
@@ -87,25 +87,16 @@ export default function registerSolutionFeature(
                 throw e;
               })
           });
-          panel.webview.html = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <script type="application/json" id="lentille-context">${JSON.stringify({ count })}</script>
-            </head>
-            <body>
-            <script defer src=${getDistFilePath(panel.webview, 'webview-solution.js')}></script>
-            <div id="app"></div>
-            </body>
-            </html>
-          `;
+          panel.webview.html = getReactWebviewHtml(
+            panel.webview,
+            'webview-solution.js',
+            { 'lentille-context': { count } }
+          );
           return true;
         })
         .catch((e: unknown) => {
           processAxiosError('获取题解')(e);
-          return new Error('Error when fetch problem', { cause: e });
+          return false;
         });
     })
   );

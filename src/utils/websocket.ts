@@ -37,7 +37,7 @@ export async function createWebsocket<
   }
   const ws = new WebSocket(WEBSOCKET_URL, {
     headers: {
-      cookie: cookieString(await globalThis.luogu.authProvider.cookie())
+      cookie: cookieString(cookie)
     },
     timeout: 6000
   });
@@ -53,9 +53,24 @@ export async function createWebsocket<
     send: (data: SC['send']) => Promise<void>;
     dispose: () => void;
   }>((resolve, reject) => {
-    setTimeout(
+    let settled = false;
+    let disposed = false;
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      clearTimeout(handshakeTimeout);
+      ws.close();
+      ev.dispose();
+    };
+    const fail = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(handshakeTimeout);
+      reject(error);
+    };
+    const handshakeTimeout = setTimeout(
       () =>
-        reject(
+        fail(
           new Error(
             'Websocket did not receive handshake response when join channel ' +
               channel
@@ -71,7 +86,7 @@ export async function createWebsocket<
           channel_param
         } satisfies ServerboundJoinChannelMessage),
         err => {
-          if (err) reject(err);
+          if (err) fail(err);
         }
       );
     })
@@ -81,7 +96,10 @@ export async function createWebsocket<
           | (ClientboundServerBroadcastMessage & SC['receive'])
           | ClientboundHeartbeatMessage;
         console.debug('Received websocket message', dat);
-        if (dat._ws_type === 'join_result')
+        if (dat._ws_type === 'join_result') {
+          if (settled) return;
+          settled = true;
+          clearTimeout(handshakeTimeout);
           return void resolve({
             data: dat.welcome_message,
             event: ev,
@@ -92,15 +110,13 @@ export async function createWebsocket<
                   err ? reject(err) : resolve()
                 )
               ),
-            dispose() {
-              ws.close();
-              ev.dispose();
-            }
+            dispose
           });
+        }
         if (dat._ws_type === 'server_broadcast')
           ev.fire({ type: 'receive', data: dat });
       })
-      .on('error', e => (reject(e), ev.fire({ type: 'error', data: e })))
+      .on('error', e => (fail(e), ev.fire({ type: 'error', data: e })))
       .on('close', () => ev.fire({ type: 'close' }));
   }).catch(e => {
     ev.dispose();

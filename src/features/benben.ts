@@ -2,17 +2,17 @@ import {
   searchUser,
   fetchFollowedBenben,
   fetchUserBenben,
-  fetchAllBenben,
   postBenben,
   deleteBenben
 } from '@/utils/api';
-import { getDistFilePath } from '@/utils/html';
+import { getReactWebviewHtml } from '@/utils/html';
 import * as vscode from 'vscode';
 import type BenbenData from '@/model/benben';
 import { getUsernameColor, getWebviewViewColumn } from '@/utils/workspaceUtils';
 import useWebviewResponseHandle from '@/utils/webviewResponse';
 import { Activity, UserSummary } from 'luogu-api';
 import { needLogin } from '@/utils/uiUtils';
+import { benbenModeRequiresLogin, BenbenMode } from './benbenMode';
 
 function isError(x: unknown): x is Error {
   return (
@@ -60,7 +60,7 @@ async function getFollowedBenben(
 async function getUserBenben(page = 1, user?: number) {
   const res = (await fetchUserBenben(page, user)).feeds.result;
   const me = (await globalThis.luogu.authProvider.user()).uid;
-  if (me === 0) {
+  if (user === undefined && me === 0) {
     needLogin();
     throw new Error('未登录');
   }
@@ -85,31 +85,6 @@ async function getUserBenben(page = 1, user?: number) {
       }))
   );
 }
-async function getAllBenben(page = 1) {
-  const res = (await fetchAllBenben(page)).feeds.result;
-  const me = (await globalThis.luogu.authProvider.user()).uid;
-  return await Promise.all(
-    Object.keys(res)
-      .sort((x, y) => +x - +y)
-      .map(x => res[x] as Activity)
-      .filter(d => d.type == 1)
-      .map<Promise<BenbenData>>(async d => ({
-        comment: d.content,
-        time: d.time * 1000,
-        user: {
-          uid: d.user.uid,
-          badge: d.user.badge || undefined,
-          name: d.user.name,
-          color: getUsernameColor(d.user.color),
-          ccfLevel: d.user.ccfLevel,
-          icon: d.user.avatar,
-          isMe: d.user.uid === me
-        },
-        id: d.id
-      }))
-  );
-}
-
 async function getMode() {
   interface PickUID extends vscode.QuickPickItem {
     label: `用户 ${string} 的动态`;
@@ -121,37 +96,19 @@ async function getMode() {
   interface PickFollowed extends vscode.QuickPickItem {
     label: '我关注的';
   }
-  interface PickAll extends vscode.QuickPickItem {
-    label: '全网动态';
-  }
   const input = vscode.window.createQuickPick<
-    PickMe | PickAll | PickFollowed | PickUID
+    PickMe | PickFollowed | PickUID
   >();
   input.placeholder = '输入一个用户名/UID，或从下方选择一项';
-  input.items = [
-    { label: '我发布的' },
-    { label: '我关注的' },
-    { label: '全网动态' }
-  ];
+  input.items = [{ label: '我发布的' }, { label: '我关注的' }];
   input.onDidChangeValue(s => {
-    if (s === '')
-      input.items = [
-        { label: '我发布的' },
-        { label: '我关注的' },
-        { label: '全网动态' }
-      ];
+    if (s === '') input.items = [{ label: '我发布的' }, { label: '我关注的' }];
     else input.items = [{ label: `用户 ${s} 的动态`, id: s }];
   });
-  return new Promise<string | 0 | 1 | 2 | undefined>(resolve => {
+  return new Promise<BenbenMode | undefined>(resolve => {
     input.onDidChangeSelection(e => {
       resolve(
-        e[0].label === '全网动态'
-          ? 0
-          : e[0].label === '我关注的'
-            ? 1
-            : e[0].label === '我发布的'
-              ? 2
-              : e[0].id
+        e[0].label === '我关注的' ? 1 : e[0].label === '我发布的' ? 2 : e[0].id
       );
     });
     input.onDidHide(() => resolve(undefined));
@@ -168,6 +125,13 @@ export default function registerBenben(context: vscode.ExtensionContext) {
       await globalThis.luogu.waitinit;
       const mode = await getMode();
       if (mode === undefined) return;
+      if (
+        benbenModeRequiresLogin(mode) &&
+        (await globalThis.luogu.authProvider.user()).uid === 0
+      ) {
+        needLogin();
+        return;
+      }
       const user =
         typeof mode === 'string'
           ? (await searchUser(mode)).users[0]
@@ -178,39 +142,26 @@ export default function registerBenben(context: vscode.ExtensionContext) {
       }
       const panel = vscode.window.createWebviewPanel(
         `luogu.benbenPanel`,
-        `犇犇 - ${mode === 0 ? '全网动态' : mode === 1 ? '我关注的' : mode === 2 ? '我发布的' : `${user!.name} 的动态`}`,
+        `犇犇 - ${mode === 1 ? '我关注的' : mode === 2 ? '我发布的' : `${user!.name} 的动态`}`,
         getWebviewViewColumn(),
         {
           enableScripts: true,
           retainContextWhenHidden: true,
-          localResourceRoots: [
-            vscode.Uri.file(globalThis.resourcesPath),
-            vscode.Uri.file(globalThis.distPath)
-          ]
+          localResourceRoots: [vscode.Uri.file(globalThis.distPath)]
         }
       );
       const userinfoCache =
         mode === '我关注的' ? new Map<number, UserSummary>() : undefined;
       const initHTML = () => {
-        panel.webview.html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body>
-        <script defer src=${getDistFilePath(panel.webview, 'webview-benben.js')}></script>
-        <div id="app"></div>
-        </body>
-        </html>
-    `;
+        panel.webview.html = getReactWebviewHtml(
+          panel.webview,
+          'webview-benben.js'
+        );
       };
       useWebviewResponseHandle(panel.webview, {
         BenbenUpdate: data => {
           if (mode === 1) return getFollowedBenben(data.page, userinfoCache);
           else if (mode === 2) return getUserBenben(data.page);
-          else if (mode === 0) return getAllBenben(data.page);
           else return getUserBenben(data.page, user!.uid);
         },
         BenbenSend: async data => {

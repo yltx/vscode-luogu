@@ -1,4 +1,4 @@
-# Set default behavior to automatically normalize line endings.
-* text=auto
+# Normalize text files to LF in the repository and working tree.
+* text=auto eol=lf
 
 *.ts filter=shared

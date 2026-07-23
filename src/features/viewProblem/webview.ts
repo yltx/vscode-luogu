@@ -1,4 +1,4 @@
-import { getDistFilePath } from '@/utils/html';
+import { getReactWebviewHtml } from '@/utils/html';
 import { getWebviewViewColumn } from '@/utils/workspaceUtils';
 import { ProblemData } from 'luogu-api';
 import * as vscode from 'vscode';
@@ -15,10 +15,7 @@ export default async function showProblemWebview(data: ProblemData) {
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [
-        vscode.Uri.file(globalThis.resourcesPath),
-        vscode.Uri.file(globalThis.distPath)
-      ],
+      localResourceRoots: [vscode.Uri.file(globalThis.distPath)],
       enableCommandUris: ['luogu.solution']
     }
   );
@@ -36,19 +33,12 @@ export default async function showProblemWebview(data: ProblemData) {
   });
   panel.onDidDispose(() => jumpToCphListener.dispose());
   const tagsArray = Array.from((await tagManager.getAllTags()).values());
-  panel.webview.html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="application/json" id="lentille-context">${JSON.stringify(data)}</script>
-    <script type="application/json" id="luogu-tags">${JSON.stringify(tagsArray)}</script>
-    </head>
-    <body>
-    <script defer src=${getDistFilePath(panel.webview, 'webview-viewProblem.js')}></script>
-    <div id="app"></div>
-    </body>
-    </html>
-  `;
+  panel.webview.html = getReactWebviewHtml(
+    panel.webview,
+    'webview-viewProblem.js',
+    {
+      'lentille-context': data,
+      'luogu-tags': tagsArray
+    }
+  );
 }

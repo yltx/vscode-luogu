@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getDistFilePath } from '@/utils/html';
+import { getReactWebviewHtml } from '@/utils/html';
 import useWebviewResponseHandle from '@/utils/webviewResponse';
 import {
   checkCookie,
@@ -22,10 +22,7 @@ export default async function showLoginView() {
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [
-        vscode.Uri.file(globalThis.resourcesPath),
-        vscode.Uri.file(globalThis.distPath)
-      ]
+      localResourceRoots: [vscode.Uri.file(globalThis.distPath)]
     }
   );
   let uid = 0,
@@ -118,19 +115,7 @@ export default async function showLoginView() {
           return { type: 'error' };
         })
   });
-  panel.webview.html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body>
-        <script defer src=${getDistFilePath(panel.webview, 'webview-login.js')}></script>
-        <div id="app"></div>
-        </body>
-        </html>
-    `;
+  panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-login.js');
   await promisify(panel.onDidDispose)();
   if (successful)
     return {

@@ -1,10 +1,18 @@
 import * as vscode from 'vscode';
 import { fetchRecords, fetchResult } from '@/utils/api';
-import { getDistFilePath } from '@/utils/html';
+import { getReactWebviewHtml } from '@/utils/html';
 import { createWebsocket, WebsocketSchema } from '@/utils/websocket';
-import { processAxiosError, getWebviewViewColumn } from '@/utils/workspaceUtils';
+import {
+  processAxiosError,
+  getWebviewViewColumn
+} from '@/utils/workspaceUtils';
 import { RecordData } from 'luogu-api';
 import { MessageTypes } from '@w/views/record/data';
+import { getLatestRecordId } from './recordList';
+
+type RecordWebsocket = Awaited<
+  ReturnType<typeof createWebsocket<WebsocketSchema.RecordTrack>>
+>;
 
 async function record(record: RecordData) {
   const panel = vscode.window.createWebviewPanel(
@@ -14,48 +22,41 @@ async function record(record: RecordData) {
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [
-        vscode.Uri.file(globalThis.resourcesPath),
-        vscode.Uri.file(globalThis.distPath)
-      ],
+      localResourceRoots: [vscode.Uri.file(globalThis.distPath)],
       enableCommandUris: [
         'luogu.searchProblem',
         'luogu.openUntitledTextDocument'
       ]
     }
   );
-  panel.webview.html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="application/json" id="lentille-context">${JSON.stringify(record satisfies RecordData)}</script>
-    </head>
-    <body>
-    <script defer src=${getDistFilePath(panel.webview, 'webview-record.js')}></script>
-    <div id="app"></div>
-    </body>
-    </html>
-  `;
+  panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-record.js', {
+    'lentille-context': record satisfies RecordData
+  });
   if (record.record.status === 0 || record.record.status === 1)
     connectWebsocket(record.record.id, panel);
 }
 
 function connectWebsocket(rid: number, panel: vscode.WebviewPanel) {
   let pending = true;
+  let disposed = false;
+  let connection: RecordWebsocket | undefined;
+  const panelDisposable = panel.onDidDispose(() => {
+    disposed = true;
+    pending = false;
+    connection?.dispose();
+  });
   new Promise<void>((resolve, reject) =>
     createWebsocket<WebsocketSchema.RecordTrack>(
       'record.track',
       rid.toString()
     ).then(
       ws => {
-        panel.onDidDispose(() => {
-          if (pending) {
-            pending = false;
-            ws.dispose();
-          }
-        });
+        connection = ws;
+        if (disposed) {
+          ws.dispose();
+          resolve();
+          return;
+        }
         panel.webview.postMessage({
           type: 'updateRecord',
           data: {
@@ -86,12 +87,13 @@ function connectWebsocket(rid: number, panel: vscode.WebviewPanel) {
               data: e.data.record
             } satisfies MessageTypes);
             if (e.data.record.status === 2)
-              fetchResult(rid).then(x =>
-                panel.webview.postMessage({
-                  type: 'updateRecord',
-                  data: x.record
-                } satisfies MessageTypes)
-              );
+              fetchResult(rid).then(x => {
+                if (!disposed)
+                  panel.webview.postMessage({
+                    type: 'updateRecord',
+                    data: x.record
+                  } satisfies MessageTypes);
+              });
             if (e.data.record.status !== 0 && e.data.record.status !== 1) {
               pending = false;
               resolve();
@@ -103,14 +105,16 @@ function connectWebsocket(rid: number, panel: vscode.WebviewPanel) {
       e => reject(e)
     )
   )
-    .then(() => fetchResult(rid))
-    .then(x =>
-      panel.webview.postMessage({
-        type: 'updateRecord',
-        data: x.record
-      } satisfies MessageTypes)
-    )
+    .then(() => (disposed ? undefined : fetchResult(rid)))
+    .then(x => {
+      if (x && !disposed)
+        return panel.webview.postMessage({
+          type: 'updateRecord',
+          data: x.record
+        } satisfies MessageTypes);
+    })
     .catch(e => {
+      if (disposed) return;
       console.error('获取记录时 WebSocket 连接失败', e);
       vscode.window
         .showErrorMessage(
@@ -118,8 +122,9 @@ function connectWebsocket(rid: number, panel: vscode.WebviewPanel) {
             (e instanceof Error ? `：${e.message}` : ''),
           '重试'
         )
-        .then(s => s === '重试' && connectWebsocket(rid, panel));
-    });
+        .then(s => s === '重试' && !disposed && connectWebsocket(rid, panel));
+    })
+    .finally(() => panelDisposable.dispose());
 }
 
 export default function registerRecord(context: vscode.ExtensionContext) {
@@ -138,10 +143,13 @@ export default function registerRecord(context: vscode.ExtensionContext) {
         processAxiosError('获取上次提交记录')
       );
       if (records === undefined) return;
-      vscode.commands.executeCommand(
-        'luogu.record',
-        Object.values(records.result)[0].id
-      );
+      const rid = getLatestRecordId(records.result);
+      if (rid === undefined) {
+        vscode.window.showInformationMessage('暂无提交记录');
+        return false;
+      }
+      await vscode.commands.executeCommand('luogu.record', rid);
+      return true;
     })
   );
 }

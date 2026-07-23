@@ -7,7 +7,7 @@ vi.mock('vscode', () => ({ default: {} }));
   waitinit: Promise.resolve(),
   version: '0.0.0-test',
   authProvider: {
-    cookie: () => Promise.resolve(null),
+    cookie: () => Promise.resolve({ uid: 0, clientID: 'test-client' }),
     getSessions: () => Promise.resolve([]),
     removeSession: () => {},
     onDidChangeSessions: () => ({ dispose: () => {} })
@@ -19,7 +19,8 @@ const {
   parseContestDataResponse,
   parseProblemID,
   resolveSubmissionProblem,
-  CSRF_TOKEN_REGEX
+  CSRF_TOKEN_REGEX,
+  axios
 } = await import('./api');
 
 describe('CSRF_TOKEN_REGEX', () => {
@@ -34,6 +35,35 @@ describe('CSRF_TOKEN_REGEX', () => {
     const html = '<meta name="other" content="abc123">';
     const match = html.match(CSRF_TOKEN_REGEX);
     expect(match).toBeNull();
+  });
+});
+
+describe('CSRF request interceptor', () => {
+  it('waits for token acquisition before dispatching a mutation', async () => {
+    const requests: { url?: string; token?: unknown }[] = [];
+    axios.defaults.adapter = async config => {
+      requests.push({
+        url: config.url,
+        token: config.headers.get('X-CSRF-Token')
+      });
+      return {
+        data:
+          config.url === API.CSRF_TOKEN
+            ? '<meta name="csrf-token" content="2000000000:test-token">'
+            : { ok: true },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config
+      };
+    };
+
+    await axios.post('/test-mutation', {});
+
+    expect(requests).toEqual([
+      { url: API.CSRF_TOKEN, token: undefined },
+      { url: '/test-mutation', token: '2000000000:test-token' }
+    ]);
   });
 });
 

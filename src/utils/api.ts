@@ -21,15 +21,12 @@ import {
   SolutionsData,
   UserSummary
 } from 'luogu-api';
-import {
-  askForCaptcha,
-  cookieString,
-  praseCookie,
-  sleep
-} from './workspaceUtils';
+import { askForCaptcha, cookieString, praseCookie } from './workspaceUtils';
 import { needLogin } from './uiUtils';
+import CsrfTokenManager from './csrfTokenManager';
 
 type EditableArticle = ArticleDetails & { content: string; top: number };
+let csrfTokenManager: CsrfTokenManager | undefined;
 
 export const CSRF_TOKEN_REGEX = /<meta name="csrf-token" content="(.*)">/;
 
@@ -130,7 +127,7 @@ export const axios = (() => {
 
   axios.interceptors.request.use(async config => {
     if (config.method !== 'get' && config.headers['X-CSRF-Token'] === undefined)
-      config.headers['X-CSRF-Token'] = csrfCache;
+      config.headers['X-CSRF-Token'] = await getCsrfTokenManager().getToken();
     return config;
   });
   axios.interceptors.request.use(async config => {
@@ -225,6 +222,28 @@ export const csrfToken = async (
       if (result === null) throw new Error('CSRF Token not found');
       return result[1].trim();
     });
+
+const getCsrfTokenManager = () =>
+  (csrfTokenManager ??= new CsrfTokenManager({
+    fetchToken: csrfToken,
+    onDidChangeSessions: listener =>
+      globalThis.luogu.authProvider.onDidChangeSessions(listener),
+    reportError: error => {
+      console.error(error);
+      vscode.window.showErrorMessage('与洛谷服务器通讯不畅。');
+    },
+    sleep: milliseconds =>
+      new Promise(resolve => setTimeout(resolve, milliseconds)),
+    now: Date.now,
+    setInterval,
+    clearInterval
+  }));
+
+export const startCsrfTokenManager = (context: vscode.ExtensionContext) => {
+  const manager = getCsrfTokenManager();
+  manager.start();
+  context.subscriptions.push(manager);
+};
 
 export const getProblemData = async (pid: string, cid?: number) =>
   axios
@@ -519,17 +538,6 @@ export const fetchUserBenben = async (page: number, user?: number) =>
     .get<{ feeds: List<Activity> }>(API.USER_BENBEN(page, user))
     .then(data => data.data);
 
-// 只需要请求用户犇犇时不带 cookie 就可以获得到全网犇犇了（？）
-export const fetchAllBenben = async (page: number) =>
-  axios
-    .get<{
-      feeds: List<Activity>;
-    }>(API.USER_BENBEN(page), {
-      myInterceptors_notCheckCookie: true,
-      myInterceptors_cookie: null
-    })
-    .then(data => data.data);
-
 export const postBenben = async (benbenText: string) =>
   axios
     .post<{ status: number; data: ActivityData }>(API.BENBEN_POST, {
@@ -748,36 +756,6 @@ export const listMyArticles = async (params: {
     axios
       .post<{ article: ArticleDetails }>(API.CREATE_ARTICLE, data)
       .then(x => x.data.article);
-
-let csrfCache: string;
-function updateCsrfCache(retry = 0) {
-  csrfToken().then(
-    s => (csrfCache = s),
-    async e => {
-      if (retry >= 3) {
-        vscode.window.showErrorMessage('与洛谷服务器通讯不畅。');
-        throw new Error('Failed to fetch CSRF token', { cause: e });
-      }
-      await sleep(200);
-      return updateCsrfCache(retry + 1);
-    }
-  );
-}
-
-globalThis.luogu.waitinit.then(() => {
-  updateCsrfCache();
-  setInterval(() => {
-    if (csrfCache === undefined) updateCsrfCache();
-    const outDate = parseInt(csrfCache.split(':')[0]) * 1000;
-    if (Date.now() + 200 * 1000 >= outDate) updateCsrfCache();
-  }, 60 * 1000);
-});
-
-globalThis.luogu.waitinit
-  .then(() => updateCsrfCache())
-  .then(() =>
-    globalThis.luogu.authProvider.onDidChangeSessions(() => updateCsrfCache())
-  );
 
 interface TagData {
   id: number;
