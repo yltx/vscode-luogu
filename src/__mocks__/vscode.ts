@@ -7,7 +7,11 @@ const vscode = {
     showQuickPick: () => Promise.resolve(undefined),
     showOpenDialog: () => Promise.resolve(undefined),
     createWebviewPanel: () => ({
-      webview: { html: '', onDidReceiveMessage: () => ({ dispose: () => {} }), postMessage: () => {} },
+      webview: {
+        html: '',
+        onDidReceiveMessage: () => ({ dispose: () => {} }),
+        postMessage: () => {}
+      },
       onDidDispose: () => {},
       dispose: () => {}
     }),
@@ -31,8 +35,16 @@ const vscode = {
     workspaceFolders: undefined
   },
   Uri: {
-    file: (path: string) => ({ fsPath: path, scheme: 'file', toString: () => path }),
-    parse: (uri: string) => ({ fsPath: uri, scheme: 'file', toString: () => uri })
+    file: (path: string) => ({
+      fsPath: path,
+      scheme: 'file',
+      toString: () => path
+    }),
+    parse: (uri: string) => ({
+      fsPath: uri,
+      scheme: 'file',
+      toString: () => uri
+    })
   },
   ViewColumn: { One: 1, Two: 2, Three: 3, Active: -1 },
   env: {
@@ -41,7 +53,10 @@ const vscode = {
   },
   EventEmitter: class {
     listeners: unknown[] = [];
-    event = (listener: unknown) => { this.listeners.push(listener); return { dispose: () => {} }; };
+    event = (listener: unknown) => {
+      this.listeners.push(listener);
+      return { dispose: () => {} };
+    };
     fire() {}
     dispose() {}
   },
