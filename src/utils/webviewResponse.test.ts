@@ -24,14 +24,17 @@ const uuid = '1a37c560-0549-4cf5-b785-ec52d5e4c01f';
 describe('useWebviewResponseHandle', () => {
   it('dispatches a valid request and returns its result', async () => {
     const webview = new FakeWebview();
-    const handler = vi.fn(({ page }: { page: number }) => [`page-${page}`]);
+    const handler = vi.fn((data: { page: number }) => {
+      expect(data.page).toBe(2);
+      return [];
+    });
     useWebviewResponseHandle(webview as never, { BenbenUpdate: handler });
 
     await webview.receive({ type: 'BenbenUpdate', data: { page: 2 }, uuid });
 
     expect(handler).toHaveBeenCalledWith({ page: 2 });
     expect(webview.postMessage).toHaveBeenCalledWith({
-      data: ['page-2'],
+      data: [],
       uuid
     });
   });
