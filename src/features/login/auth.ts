@@ -137,10 +137,10 @@ export default class LuoguAuthProvider
     }
     return parsed as LuoguSession;
   }
-  private async setAnonymousSession() {
+  private async setAnonymousSession(clientID?: string) {
     this.cache = new LuoguSession({
       uid: 0,
-      clientID: await genClientID(),
+      clientID: clientID ?? (await genClientID()),
       name: ''
     });
     this.status = false;
@@ -149,6 +149,22 @@ export default class LuoguAuthProvider
       'luoguLoginStatus',
       false
     );
+  }
+  async invalidateSession(): Promise<boolean> {
+    await this.cacheLock;
+    if (!this.status) return false;
+
+    const removed = this.cache;
+    // The client ID can still be used by an anonymous session. Reusing it
+    // makes local invalidation independent from the network.
+    await this.setAnonymousSession(removed.accessToken);
+    await this.secretStorage.delete(LuoguAuthProvider.SecretKey);
+    this._sessionChangeEmitter.fire({
+      added: [],
+      changed: [],
+      removed: [removed]
+    });
+    return true;
   }
   get onDidChangeSessions(): vscode.Event<vscode.AuthenticationProviderAuthenticationSessionsChangeEvent> {
     return this._sessionChangeEmitter.event;
@@ -183,9 +199,7 @@ export default class LuoguAuthProvider
             );
             console.error(err);
           });
-        await this.secretStorage
-          .delete(LuoguAuthProvider.SecretKey)
-          .then(() => (this.status = false));
+        await this.invalidateSession();
       }
     }
   }

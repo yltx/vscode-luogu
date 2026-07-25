@@ -27,6 +27,25 @@ import CsrfTokenManager from './csrfTokenManager';
 
 type EditableArticle = ArticleDetails & { content: string; top: number };
 let csrfTokenManager: CsrfTokenManager | undefined;
+let invalidSessionHandling: Promise<void> | undefined;
+const UNAUTHENTICATED_REDIRECT = 'LUOGU_UNAUTHENTICATED_REDIRECT';
+
+const invalidateSession = () =>
+  (invalidSessionHandling ??= (async () => {
+    await globalThis.luogu.authProvider.invalidateSession();
+    needLogin();
+  })().finally(() => {
+    invalidSessionHandling = undefined;
+  }));
+
+const isUnauthenticatedError = (error: unknown) =>
+  isAxiosError(error) &&
+  (error.response?.data.errorMessage === '未登录' ||
+    error.response?.data.data?.errorType ===
+      'LuoguWeb\\Spilopelia\\Exception\\UserUnloginException' ||
+    error.message === UNAUTHENTICATED_REDIRECT ||
+    (error.cause instanceof Error &&
+      error.cause.message === UNAUTHENTICATED_REDIRECT));
 
 export const CSRF_TOKEN_REGEX = /<meta name="csrf-token" content="(.*)">/;
 
@@ -107,10 +126,8 @@ export const axios = (() => {
     proxy: false,
     timeout: 6000,
     beforeRedirect: (options, { headers, statusCode }) => {
-      if (statusCode === 302 && headers.location === '/auth/login') {
-        needLogin();
-        throw new Error('未登录');
-      }
+      if (statusCode === 302 && headers.location === '/auth/login')
+        throw new Error(UNAUTHENTICATED_REDIRECT);
     }
   });
 
@@ -139,44 +156,35 @@ export const axios = (() => {
     return config;
   });
   axios.interceptors.response.use(
-    res => {
+    async res => {
       if (res.config.myInterceptors_notCheckCookie) return res;
       if (res.config.myInterceptors_cookie?.uid) {
         const get = praseCookie(res.headers['set-cookie']);
         if (
           get.uid !== undefined &&
           get.uid != res.config.myInterceptors_cookie.uid
-        )
+        ) {
+          await invalidateSession();
           throw Error('UnknownCookie');
+        }
       }
       return res;
     },
     async err => {
-      if (!isAxiosError(err) || !err.response) throw err;
-      if (
-        err.response.data.errorMessage === '未登录' ||
-        err.response.data.data?.errorType ===
-          'LuoguWeb\\Spilopelia\\Exception\\UserUnloginException'
-      ) {
-        needLogin();
+      if (!isAxiosError(err)) throw err;
+      if (err.config?.myInterceptors_notCheckCookie) throw err;
+      if (isUnauthenticatedError(err)) {
+        await invalidateSession();
         throw new Error('未登录', { cause: err });
       }
-      if (err.config?.myInterceptors_notCheckCookie) throw err;
+      if (!err.response) throw err;
       if (err.config?.myInterceptors_cookie?.uid) {
         const get = praseCookie(err.response.headers['set-cookie']);
         if (
           get.uid !== undefined &&
           get.uid != err.config.myInterceptors_cookie.uid
         ) {
-          const sessions = await globalThis.luogu.authProvider.getSessions();
-          if (sessions.length > 0) {
-            globalThis.luogu.authProvider.removeSession(sessions[0].id);
-            vscode.window
-              .showErrorMessage('登录信息已经失效，请重新登录。', '登录')
-              .then(async c => {
-                if (c) vscode.commands.executeCommand('luogu.signin');
-              });
-          }
+          await invalidateSession();
         }
       }
       throw err;
@@ -430,12 +438,7 @@ export const getStatus = async () => {
   if (status) {
     return UserStatus.SignedIn.toString();
   } else {
-    globalThis.luogu.authProvider.removeSession(session[0].id);
-    vscode.window
-      .showErrorMessage('登录信息已经失效，请重新登录。', '登录')
-      .then(async c => {
-        if (c) vscode.commands.executeCommand('luogu.signin');
-      });
+    await invalidateSession();
     return UserStatus.SignedOut.toString();
   }
 };
@@ -662,10 +665,16 @@ export async function submitCode(
     });
 }
 export async function checkCookie(oldCookie: Cookie) {
-  const res = await axios.get(API.CLIENT_ID, {
-    myInterceptors_notCheckCookie: true,
-    myInterceptors_cookie: oldCookie
-  });
+  const res = await axios
+    .get(API.CLIENT_ID, {
+      myInterceptors_notCheckCookie: true,
+      myInterceptors_cookie: oldCookie
+    })
+    .catch(error => {
+      if (isUnauthenticatedError(error)) return undefined;
+      throw error;
+    });
+  if (!res) return false;
   const newCookie = praseCookie(res.headers['set-cookie']);
   return (
     (newCookie.uid ?? oldCookie.uid) === oldCookie.uid &&

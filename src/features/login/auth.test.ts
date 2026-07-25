@@ -112,4 +112,30 @@ describe('LuoguAuthProvider', () => {
       'network unavailable'
     );
   });
+
+  it('locally invalidates an expired stored session', async () => {
+    const storage = new FakeSecretStorage(
+      JSON.stringify({
+        id: 'stored-session',
+        accessToken: 'expired-client',
+        account: { id: '123', label: 'test-user' },
+        scopes: []
+      })
+    );
+    const provider = new LuoguAuthProvider(storage as never);
+
+    await expect(withTimeout(provider.getSessions())).resolves.toHaveLength(1);
+    await expect(provider.invalidateSession()).resolves.toBe(true);
+
+    await expect(withTimeout(provider.getSessions())).resolves.toEqual([]);
+    await expect(withTimeout(provider.cookie())).resolves.toEqual({
+      uid: 0,
+      clientID: 'expired-client'
+    });
+    expect(executeCommand).toHaveBeenCalledWith(
+      'setContext',
+      'luoguLoginStatus',
+      false
+    );
+  });
 });
