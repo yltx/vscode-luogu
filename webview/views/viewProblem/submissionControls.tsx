@@ -3,7 +3,6 @@ const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
 const { faPaperPlane } = await import('@fortawesome/free-solid-svg-icons');
 const { default: send } = await import('@w/webviewRequest');
 
-import type { ProblemSubmissionContext } from '@/features/submit';
 import {
   VSCodeButton,
   VSCodeDropdown,
@@ -11,6 +10,7 @@ import {
 } from '@vscode/webview-ui-toolkit/react';
 
 import './submissionControls.css';
+import type { ProblemSubmissionContext } from './submissionTypes';
 
 export default function SubmissionControls() {
   const [submissionContext, setSubmissionContext] =

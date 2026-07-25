@@ -85,7 +85,9 @@ type SubmitProblemMessageType = WebviewMessage<
 >;
 type GetSubmissionContextMessageType = WebviewMessage<
   WebviewRequestMessage<'getSubmissionContext', void>,
-  WebviewResponseMessage<import('@/features/submit').ProblemSubmissionContext>
+  WebviewResponseMessage<
+    import('./views/viewProblem/submissionTypes').ProblemSubmissionContext
+  >
 >;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,
