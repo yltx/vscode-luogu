@@ -15,10 +15,6 @@
         margin-bottom: 0.67em;
         gap: 5px;
         flex-wrap: wrap;
-        > .submissionControls {
-          display: flex;
-          gap: 5px;
-        }
         vscode-button {
           > * {
             display: flex;

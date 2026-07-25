@@ -1,7 +1,7 @@
 const { default: React, useEffect, useState } = await import('react');
 const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
-const { faChevronDown, faBook, faPaperPlane } = await import(
+const { faChevronDown, faBook } = await import(
   '@fortawesome/free-solid-svg-icons'
 );
 const { ProblemDifficultyTag } = await import('@w/components');
@@ -12,11 +12,11 @@ const { formatTime, formatMemory } = await import('@/utils/stringUtils');
 import '@w/utils/tags';
 
 import { ProblemData } from 'luogu-api';
-import type { ProblemSubmissionContext } from '@w/webviewMessage';
 
 import CphIcon from './cphIcon';
 import '@w/common.css';
 import './app.css';
+import SubmissionControls from './submissionControls';
 import { VSCodeDropdown, VSCodeOption } from '@vscode/webview-ui-toolkit/react';
 
 function formatTimeLimit(timeLimit: number[]) {
@@ -40,44 +40,13 @@ function formatMemoryLimit(memoryLimit: number[]) {
 export default function Problem({ children: data }: { children: ProblemData }) {
   const languagesList = Object.keys(data.translations);
   const [cphType, setCphType] = useState(false);
-  const [submissionContext, setSubmissionContext] =
-    useState<ProblemSubmissionContext>({ languages: [] });
-  const [submissionLanguage, setSubmissionLanguage] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [choosedLanguage, setChoosedLanguage] = useState(
     'zh-CN' in data.translations ? 'zh-CN' : languagesList[0]
   );
-  useEffect(() => {
-    void send('checkCph', undefined).then(res => setCphType(res));
-    void send('getSubmissionContext', undefined).then(setSubmissionContext);
-    const listener = (
-      event: MessageEvent<{
-        type?: string;
-        data?: ProblemSubmissionContext;
-      }>
-    ) => {
-      if (event.data.type === 'submissionContextChanged' && event.data.data)
-        setSubmissionContext(event.data.data);
-    };
-    window.addEventListener('message', listener);
-    return () => window.removeEventListener('message', listener);
-  }, []);
-  useEffect(() => {
-    setSubmissionLanguage(
-      submissionContext.defaultLanguage ??
-        submissionContext.languages[0]?.label ??
-        ''
-    );
-  }, [submissionContext]);
-  const submitCurrentDocument = async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      await send('submitProblem', { language: submissionLanguage });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  useEffect(
+    () => void send('checkCph', undefined).then(res => setCphType(res)),
+    []
+  );
   const problemContent =
     data.translations[choosedLanguage] || data.problem.content;
   return (
@@ -120,35 +89,7 @@ export default function Problem({ children: data }: { children: ProblemData }) {
                 </div>
               </VSCodeButton>
             )}
-            <div className="submissionControls">
-              <VSCodeButton
-                onClick={submitCurrentDocument}
-                appearance="primary"
-                disabled={submitting}
-                title={submissionContext.filePath}
-              >
-                <div>
-                  <FontAwesomeIcon icon={faPaperPlane} />{' '}
-                  {submissionContext.fileName
-                    ? `提交 ${submissionContext.fileName}`
-                    : '提交代码'}
-                </div>
-              </VSCodeButton>
-              <VSCodeDropdown
-                ariaLabelledby="选择提交语言"
-                value={submissionLanguage}
-                disabled={
-                  submitting || submissionContext.languages.length === 0
-                }
-                onChange={event => setSubmissionLanguage(event.target.value)}
-              >
-                {submissionContext.languages.map(language => (
-                  <VSCodeOption value={language.label} key={language.label}>
-                    {language.label}
-                  </VSCodeOption>
-                ))}
-              </VSCodeDropdown>
-            </div>
+            <SubmissionControls key={data.problem.pid} />
             {data.problem.type !== 'T' &&
               data.problem.type !== 'U' &&
               !data.contest && (

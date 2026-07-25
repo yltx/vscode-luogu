@@ -10,16 +10,6 @@ export type WebviewResponseMessage<D> = {
   error?: string;
   uuid: UUID;
 };
-export type ProblemSubmissionContext = {
-  fileName?: string;
-  filePath?: string;
-  languages: {
-    label: string;
-    id: number;
-    O2?: true;
-  }[];
-  defaultLanguage?: string;
-};
 export type WebviewMessage<
   REQ extends WebviewRequestMessage<string, unknown>,
   RES extends WebviewResponseMessage<unknown>
@@ -95,7 +85,7 @@ type SubmitProblemMessageType = WebviewMessage<
 >;
 type GetSubmissionContextMessageType = WebviewMessage<
   WebviewRequestMessage<'getSubmissionContext', void>,
-  WebviewResponseMessage<ProblemSubmissionContext>
+  WebviewResponseMessage<import('@/features/submit').ProblemSubmissionContext>
 >;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,

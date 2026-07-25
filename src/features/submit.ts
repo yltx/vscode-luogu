@@ -11,9 +11,19 @@ import {
   fileExtToLanguage,
   languageFamily
 } from '@/utils/shared';
-import type { ProblemSubmissionContext } from '@w/webviewMessage';
 import * as vscode from 'vscode';
 import path from 'path';
+
+export type ProblemSubmissionContext = {
+  fileName?: string;
+  filePath?: string;
+  languages: {
+    label: string;
+    id: number;
+    O2?: true;
+  }[];
+  defaultLanguage?: string;
+};
 
 type SubmissionProblem =
   | import('@/features/history/historyItem').ProblemHistoryItem
