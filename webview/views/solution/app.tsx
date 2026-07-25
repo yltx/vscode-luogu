@@ -67,6 +67,14 @@ function SolutionPage({
                 </a>
               </span>
             </header>
+            {article.adminNote && (
+              <aside className="solution-admin-note" role="note">
+                <div className="solution-admin-note-title">管理员提示：</div>
+                <div className="solution-admin-note-content">
+                  <Md>{article.adminNote}</Md>
+                </div>
+              </aside>
+            )}
             <div className="solution-content">
               <Md>{article.content}</Md>
             </div>
