@@ -6,6 +6,7 @@ import useWebviewResponseHandle from '@/utils/webviewResponse';
 import { checkCPH, sendCphMessage } from './cph';
 import jumpToCphEventEmitter from './jumpToCphEventEmitter';
 import { tagManager } from '@/utils/tagManager';
+import { searchContest } from '@/utils/api';
 
 export default async function showProblemWebview(data: ProblemData) {
   const panel = vscode.window.createWebviewPanel(
@@ -25,6 +26,27 @@ export default async function showProblemWebview(data: ProblemData) {
     submitProblem: () =>
       vscode.commands.executeCommand<boolean>('luogu.sumbitCode', {
         pid: data.problem.pid,
+        cid: data.contest?.id
+      }),
+    getContestProblemNavigation: async () => {
+      if (!data.contest) return null;
+      try {
+        const contestData = await searchContest(data.contest.id);
+        if (!contestData.contestProblems) return null;
+        return {
+          contestName: contestData.contest.name,
+          problems: contestData.contestProblems.map(({ problem }) => ({
+            pid: problem.pid,
+            title: problem.title
+          }))
+        };
+      } catch {
+        return null;
+      }
+    },
+    openContestProblem: ({ pid }) =>
+      vscode.commands.executeCommand<boolean>('luogu.searchProblem', {
+        pid,
         cid: data.contest?.id
       })
   });

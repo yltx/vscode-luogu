@@ -40,6 +40,8 @@ const requestValidators = {
   checkCph: isVoid,
   jumpToCph: isVoid,
   submitProblem: isVoid,
+  getContestProblemNavigation: isVoid,
+  openContestProblem: (data: unknown) => hasShape(data, { pid: isString }),
   getSolutionDetails: (data: unknown) => hasShape(data, { index: isInteger }),
   voteArticle: (data: unknown) =>
     hasShape(data, {

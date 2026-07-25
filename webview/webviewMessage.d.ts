@@ -10,6 +10,13 @@ export type WebviewResponseMessage<D> = {
   error?: string;
   uuid: UUID;
 };
+export type ContestProblemNavigation = {
+  contestName: string;
+  problems: {
+    pid: string;
+    title: string;
+  }[];
+};
 export type WebviewMessage<
   REQ extends WebviewRequestMessage<string, unknown>,
   RES extends WebviewResponseMessage<unknown>
@@ -83,6 +90,14 @@ type SubmitProblemMessageType = WebviewMessage<
   WebviewRequestMessage<'submitProblem', void>,
   WebviewResponseMessage<boolean>
 >;
+type GetContestProblemNavigationMessageType = WebviewMessage<
+  WebviewRequestMessage<'getContestProblemNavigation', void>,
+  WebviewResponseMessage<ContestProblemNavigation | null>
+>;
+type OpenContestProblemMessageType = WebviewMessage<
+  WebviewRequestMessage<'openContestProblem', { pid: string }>,
+  WebviewResponseMessage<boolean>
+>;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,
   WebviewResponseMessage<import('@/model/article').default>
@@ -131,6 +146,8 @@ type MessageTypes = MessageTypesBase<
     checkCphMessageType,
     JumpToCphMessageType,
     SubmitProblemMessageType,
+    GetContestProblemNavigationMessageType,
+    OpenContestProblemMessageType,
     GetSolutionDetailsMessageType,
     VoteArticleMessageType,
     ContestRanklist,

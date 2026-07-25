@@ -12,6 +12,7 @@ const { formatTime, formatMemory } = await import('@/utils/stringUtils');
 import '@w/utils/tags';
 
 import { ProblemData } from 'luogu-api';
+import type { ContestProblemNavigation } from '@w/webviewMessage';
 
 import CphIcon from './cphIcon';
 import '@w/common.css';
@@ -36,21 +37,41 @@ function formatMemoryLimit(memoryLimit: number[]) {
     : `${minmemorystr}~${maxmemorystr}`;
 }
 
+function formatContestProblemIndex(index: number) {
+  let value = index + 1;
+  let result = '';
+  while (value > 0) {
+    value--;
+    result = String.fromCharCode(65 + (value % 26)) + result;
+    value = Math.floor(value / 26);
+  }
+  return result;
+}
+
 export default function Problem({ children: data }: { children: ProblemData }) {
   const languagesList = Object.keys(data.translations);
   const [cphType, setCphType] = useState(false);
+  const [contestNavigation, setContestNavigation] =
+    useState<ContestProblemNavigation | null>(null);
   const [choosedLanguage, setChoosedLanguage] = useState(
     'zh-CN' in data.translations ? 'zh-CN' : languagesList[0]
   );
-  useEffect(
-    () => void send('checkCph', undefined).then(res => setCphType(res)),
-    []
-  );
+  useEffect(() => {
+    void send('checkCph', undefined).then(res => setCphType(res));
+    if (data.contest)
+      void send('getContestProblemNavigation', undefined)
+        .then(setContestNavigation)
+        .catch(() => setContestNavigation(null));
+  }, []);
   const problemContent =
     data.translations[choosedLanguage] || data.problem.content;
   return (
     <>
-      <header>
+      <header
+        className={
+          contestNavigation?.problems.length ? 'withContestNavigation' : ''
+        }
+      >
         <div>
           <h1>
             <a
@@ -147,6 +168,36 @@ export default function Problem({ children: data }: { children: ProblemData }) {
           </div>
         </div>
       </header>
+      {contestNavigation && contestNavigation.problems.length > 0 && (
+        <nav
+          className="contestProblemNavigation"
+          aria-label={contestNavigation.contestName}
+        >
+          {contestNavigation.problems.map((problem, index) => {
+            const isCurrentProblem = problem.pid === data.problem.pid;
+            const tooltip =
+              `${problem.pid} [${contestNavigation.contestName}] ` +
+              problem.title;
+            return (
+              <VSCodeButton
+                key={problem.pid}
+                appearance={isCurrentProblem ? 'primary' : 'secondary'}
+                aria-current={isCurrentProblem ? 'page' : undefined}
+                aria-label={tooltip}
+                title={tooltip}
+                onClick={
+                  isCurrentProblem
+                    ? undefined
+                    : () =>
+                        void send('openContestProblem', { pid: problem.pid })
+                }
+              >
+                {formatContestProblemIndex(index)}
+              </VSCodeButton>
+            );
+          })}
+        </nav>
+      )}
       <div>
         {problemContent.background && (
           <div>
