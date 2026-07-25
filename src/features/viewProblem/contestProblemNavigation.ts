@@ -1,15 +1,8 @@
 import { getProblemData, searchContest } from '@/utils/api';
 import { processAxiosError } from '@/utils/workspaceUtils';
+import type { ContestProblemNavigation } from '@w/views/viewProblem/contestProblemNavigationTypes';
 import type { ProblemData } from 'luogu-api';
 import * as vscode from 'vscode';
-
-export type ContestProblemNavigation = {
-  contestName: string;
-  problems: {
-    pid: string;
-    title: string;
-  }[];
-};
 
 export const createContestProblemNavigationHandlers = (
   panel: vscode.WebviewPanel,

@@ -2,10 +2,10 @@ const { default: React, useEffect, useState } = await import('react');
 const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
 const { default: send } = await import('@w/webviewRequest');
 
-import type { ContestProblemNavigation as NavigationData } from '@/features/viewProblem/contestProblemNavigation';
 import type { ProblemData } from 'luogu-api';
 
 import './contestProblemNavigation.css';
+import type { ContestProblemNavigation as NavigationData } from './contestProblemNavigationTypes';
 
 function formatContestProblemIndex(index: number) {
   let value = index + 1;

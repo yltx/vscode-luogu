@@ -94,7 +94,7 @@ type VoteArticleMessageType = WebviewMessage<
 type GetContestProblemNavigationMessageType = WebviewMessage<
   WebviewRequestMessage<'getContestProblemNavigation', void>,
   WebviewResponseMessage<
-    | import('@/features/viewProblem/contestProblemNavigation').ContestProblemNavigation
+    | import('./views/viewProblem/contestProblemNavigationTypes').ContestProblemNavigation
     | null
   >
 >;
