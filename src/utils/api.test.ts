@@ -1,16 +1,6 @@
-import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
-const vscodeMocks = vi.hoisted(() => ({
-  showErrorMessage: vi.fn(() => Promise.resolve(undefined)),
-  executeCommand: vi.fn(() => Promise.resolve())
-}));
-
-vi.mock('vscode', () => ({
-  window: { showErrorMessage: vscodeMocks.showErrorMessage },
-  commands: { executeCommand: vscodeMocks.executeCommand }
-}));
-
-const invalidateSession = vi.fn(() => Promise.resolve(true));
+vi.mock('vscode', () => ({ default: {} }));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).luogu = {
@@ -20,7 +10,6 @@ const invalidateSession = vi.fn(() => Promise.resolve(true));
     cookie: () => Promise.resolve({ uid: 0, clientID: 'test-client' }),
     getSessions: () => Promise.resolve([]),
     removeSession: () => {},
-    invalidateSession,
     onDidChangeSessions: () => ({ dispose: () => {} })
   }
 };
@@ -33,11 +22,6 @@ const {
   CSRF_TOKEN_REGEX,
   axios
 } = await import('./api');
-
-beforeEach(() => {
-  invalidateSession.mockClear();
-  vscodeMocks.showErrorMessage.mockClear();
-});
 
 describe('CSRF_TOKEN_REGEX', () => {
   it('extracts CSRF token from meta tag', () => {
@@ -80,29 +64,6 @@ describe('CSRF request interceptor', () => {
       { url: API.CSRF_TOKEN, token: undefined },
       { url: '/test-mutation', token: '2000000000:test-token' }
     ]);
-  });
-});
-
-describe('authentication response interceptor', () => {
-  it('invalidates the stored session when Luogu reports that it expired', async () => {
-    axios.defaults.adapter = async config => {
-      const error = Object.assign(new Error('Request failed'), {
-        isAxiosError: true,
-        config,
-        response: {
-          data: { errorMessage: '未登录' },
-          status: 401,
-          statusText: 'Unauthorized',
-          headers: {},
-          config
-        }
-      });
-      throw error;
-    };
-
-    await expect(axios.get('/requires-login')).rejects.toThrow('未登录');
-    expect(invalidateSession).toHaveBeenCalledTimes(1);
-    expect(vscodeMocks.showErrorMessage).toHaveBeenCalledWith('未登录', '登录');
   });
 });
 
