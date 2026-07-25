@@ -40,7 +40,12 @@ const invalidateSession = () =>
 
 const isUnauthenticatedError = (error: unknown) =>
   isAxiosError(error) &&
-  (error.response?.data.errorMessage === '未登录' ||
+  (error.response?.status === 401 ||
+    ['未登录', '请先登录'].includes(error.response?.data.errorMessage) ||
+    ['未登录', '请先登录'].includes(
+      error.response?.data.currentData?.errorMessage
+    ) ||
+    ['未登录', '请先登录'].includes(error.response?.data.data?.errorMessage) ||
     error.response?.data.data?.errorType ===
       'LuoguWeb\\Spilopelia\\Exception\\UserUnloginException' ||
     error.message === UNAUTHENTICATED_REDIRECT ||
