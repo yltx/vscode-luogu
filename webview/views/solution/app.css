@@ -48,6 +48,35 @@ body {
   line-height: 1.7;
 }
 
+.solution-admin-note {
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  background: var(
+    --vscode-inputValidation-errorBackground,
+    rgb(255 80 80 / 8%)
+  );
+  border-left: 6px solid
+    var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground));
+}
+
+.solution-admin-note-title {
+  margin-bottom: 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.solution-admin-note-content {
+  line-height: 1.6;
+}
+
+.solution-admin-note-content > article > :first-child {
+  margin-top: 0;
+}
+
+.solution-admin-note-content > article > :last-child {
+  margin-bottom: 0;
+}
+
 .solution-content article img {
   max-width: 100%;
   height: auto;
