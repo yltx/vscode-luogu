@@ -10,6 +10,16 @@ export type WebviewResponseMessage<D> = {
   error?: string;
   uuid: UUID;
 };
+export type ProblemSubmissionContext = {
+  fileName?: string;
+  filePath?: string;
+  languages: {
+    label: string;
+    id: number;
+    O2?: true;
+  }[];
+  defaultLanguage?: string;
+};
 export type WebviewMessage<
   REQ extends WebviewRequestMessage<string, unknown>,
   RES extends WebviewResponseMessage<unknown>
@@ -80,8 +90,12 @@ type JumpToCphMessageType = WebviewMessage<
   WebviewResponseMessage<void>
 >;
 type SubmitProblemMessageType = WebviewMessage<
-  WebviewRequestMessage<'submitProblem', void>,
+  WebviewRequestMessage<'submitProblem', { language: string }>,
   WebviewResponseMessage<boolean>
+>;
+type GetSubmissionContextMessageType = WebviewMessage<
+  WebviewRequestMessage<'getSubmissionContext', void>,
+  WebviewResponseMessage<ProblemSubmissionContext>
 >;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,
@@ -131,6 +145,7 @@ type MessageTypes = MessageTypesBase<
     checkCphMessageType,
     JumpToCphMessageType,
     SubmitProblemMessageType,
+    GetSubmissionContextMessageType,
     GetSolutionDetailsMessageType,
     VoteArticleMessageType,
     ContestRanklist,

@@ -12,6 +12,7 @@ const { formatTime, formatMemory } = await import('@/utils/stringUtils');
 import '@w/utils/tags';
 
 import { ProblemData } from 'luogu-api';
+import type { ProblemSubmissionContext } from '@w/webviewMessage';
 
 import CphIcon from './cphIcon';
 import '@w/common.css';
@@ -39,13 +40,44 @@ function formatMemoryLimit(memoryLimit: number[]) {
 export default function Problem({ children: data }: { children: ProblemData }) {
   const languagesList = Object.keys(data.translations);
   const [cphType, setCphType] = useState(false);
+  const [submissionContext, setSubmissionContext] =
+    useState<ProblemSubmissionContext>({ languages: [] });
+  const [submissionLanguage, setSubmissionLanguage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [choosedLanguage, setChoosedLanguage] = useState(
     'zh-CN' in data.translations ? 'zh-CN' : languagesList[0]
   );
-  useEffect(
-    () => void send('checkCph', undefined).then(res => setCphType(res)),
-    []
-  );
+  useEffect(() => {
+    void send('checkCph', undefined).then(res => setCphType(res));
+    void send('getSubmissionContext', undefined).then(setSubmissionContext);
+    const listener = (
+      event: MessageEvent<{
+        type?: string;
+        data?: ProblemSubmissionContext;
+      }>
+    ) => {
+      if (event.data.type === 'submissionContextChanged' && event.data.data)
+        setSubmissionContext(event.data.data);
+    };
+    window.addEventListener('message', listener);
+    return () => window.removeEventListener('message', listener);
+  }, []);
+  useEffect(() => {
+    setSubmissionLanguage(
+      submissionContext.defaultLanguage ??
+        submissionContext.languages[0]?.label ??
+        ''
+    );
+  }, [submissionContext]);
+  const submitCurrentDocument = async () => {
+    if (!submissionLanguage || submitting) return;
+    setSubmitting(true);
+    try {
+      await send('submitProblem', { language: submissionLanguage });
+    } finally {
+      setSubmitting(false);
+    }
+  };
   const problemContent =
     data.translations[choosedLanguage] || data.problem.content;
   return (
@@ -88,14 +120,37 @@ export default function Problem({ children: data }: { children: ProblemData }) {
                 </div>
               </VSCodeButton>
             )}
-            <VSCodeButton
-              onClick={() => send('submitProblem', undefined)}
-              appearance="primary"
-            >
-              <div>
-                <FontAwesomeIcon icon={faPaperPlane} /> 提交代码
-              </div>
-            </VSCodeButton>
+            <div className="submissionControls">
+              <VSCodeButton
+                onClick={submitCurrentDocument}
+                appearance="primary"
+                disabled={
+                  submitting ||
+                  !submissionContext.fileName ||
+                  submissionContext.languages.length === 0
+                }
+                title={submissionContext.filePath}
+              >
+                <div>
+                  <FontAwesomeIcon icon={faPaperPlane} /> 提交{' '}
+                  {submissionContext.fileName ?? '代码'}
+                </div>
+              </VSCodeButton>
+              <VSCodeDropdown
+                ariaLabelledby="选择提交语言"
+                value={submissionLanguage}
+                disabled={
+                  submitting || submissionContext.languages.length === 0
+                }
+                onChange={event => setSubmissionLanguage(event.target.value)}
+              >
+                {submissionContext.languages.map(language => (
+                  <VSCodeOption value={language.label} key={language.label}>
+                    {language.label}
+                  </VSCodeOption>
+                ))}
+              </VSCodeDropdown>
+            </div>
             {data.problem.type !== 'T' &&
               data.problem.type !== 'U' &&
               !data.contest && (

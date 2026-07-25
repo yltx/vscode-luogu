@@ -6,7 +6,19 @@ import {
   guessProblemId,
   processAxiosError
 } from '@/utils/workspaceUtils';
+import {
+  defaultLanguageVersion,
+  fileExtToLanguage,
+  languageFamily
+} from '@/utils/shared';
+import type { ProblemSubmissionContext } from '@w/webviewMessage';
 import * as vscode from 'vscode';
+import path from 'path';
+
+type SubmissionProblem =
+  | import('@/features/history/historyItem').ProblemHistoryItem
+  | { pid: string; cid?: number };
+type SubmissionLanguage = { id: number; O2?: true };
 
 export default function registerSubmitFeature(
   context: vscode.ExtensionContext
@@ -14,11 +26,7 @@ export default function registerSubmitFeature(
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'luogu.sumbitCode',
-      async (
-        problem?:
-          | import('@/features/history/historyItem').ProblemHistoryItem
-          | { pid: string; cid?: number }
-      ) => {
+      async (problem?: SubmissionProblem) => {
         let editor: vscode.TextEditor | undefined =
           vscode.window.activeTextEditor;
 
@@ -55,23 +63,85 @@ export default function registerSubmitFeature(
           editor.document.fileName.split('.').pop()!
         );
         if (lang === undefined) return false;
-        vscode.window.showInformationMessage('正在提交……');
-        try {
-          const rid = await submitCode(
-            problem,
-            editor.document.getText(),
-            lang.id,
-            lang.O2
-          );
-          vscode.commands.executeCommand('luogu.record', rid);
-          return true;
-        } catch (e) {
-          processAxiosError('提交代码')(e);
-          return false;
-        }
+        return submitDocument(problem, editor.document, lang);
       }
     )
   );
+}
+
+export function getSubmissionContext(
+  document?: vscode.TextDocument
+): ProblemSubmissionContext {
+  if (!document || document.isClosed)
+    return {
+      languages: []
+    };
+
+  const fileName = path.basename(document.fileName);
+  const extension = path.extname(fileName).slice(1).toLowerCase();
+  const languageName =
+    extension in fileExtToLanguage
+      ? fileExtToLanguage[extension as keyof typeof fileExtToLanguage]
+      : undefined;
+  if (!languageName)
+    return {
+      fileName,
+      filePath: document.fileName,
+      languages: []
+    };
+
+  const languageData = languageFamily[languageName];
+  const languages: ProblemSubmissionContext['languages'] =
+    'id' in languageData
+      ? [{ label: languageName, id: languageData.id }]
+      : Object.entries(languageData).map(([label, value]) => ({
+          label,
+          id: value.id,
+          ...('O2' in value && value.O2 ? { O2: true as const } : {})
+        }));
+  const configuredDefault = vscode.workspace
+    .getConfiguration('luogu')
+    .get<Record<string, string>>('defaultLanguageVersion', {})[languageName];
+  const builtInDefault = (
+    defaultLanguageVersion as Partial<Record<typeof languageName, string>>
+  )[languageName];
+  const preferredLanguage = configuredDefault ?? builtInDefault;
+  const defaultLanguage = languages.some(
+    language => language.label === preferredLanguage
+  )
+    ? preferredLanguage
+    : languages[0]?.label;
+
+  return {
+    fileName,
+    filePath: document.fileName,
+    languages,
+    defaultLanguage
+  };
+}
+
+export async function submitDocument(
+  problem: SubmissionProblem,
+  document: vscode.TextDocument,
+  language: SubmissionLanguage
+) {
+  if ('type' in problem)
+    problem = { pid: problem.pid, cid: problem.contest?.contestId };
+  problem = resolveSubmissionProblem(problem, getContestMonitor());
+  vscode.window.showInformationMessage('正在提交……');
+  try {
+    const rid = await submitCode(
+      problem,
+      document.getText(),
+      language.id,
+      language.O2
+    );
+    vscode.commands.executeCommand('luogu.record', rid);
+    return true;
+  } catch (e) {
+    processAxiosError('提交代码')(e);
+    return false;
+  }
 }
 
 async function selectOpenDocument(): Promise<vscode.TextEditor | undefined> {

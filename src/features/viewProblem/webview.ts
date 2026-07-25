@@ -6,8 +6,10 @@ import useWebviewResponseHandle from '@/utils/webviewResponse';
 import { checkCPH, sendCphMessage } from './cph';
 import jumpToCphEventEmitter from './jumpToCphEventEmitter';
 import { tagManager } from '@/utils/tagManager';
+import { getSubmissionContext, submitDocument } from '@/features/submit';
 
 export default async function showProblemWebview(data: ProblemData) {
+  let selectedDocument = vscode.window.activeTextEditor?.document;
   const panel = vscode.window.createWebviewPanel(
     'luogu.problemPanel',
     `${data.problem.pid} ${data.problem.title ?? data.problem.content.name}`,
@@ -22,16 +24,57 @@ export default async function showProblemWebview(data: ProblemData) {
   useWebviewResponseHandle(panel.webview, {
     checkCph: checkCPH,
     jumpToCph: () => sendCphMessage(data),
-    submitProblem: () =>
-      vscode.commands.executeCommand<boolean>('luogu.sumbitCode', {
-        pid: data.problem.pid,
-        cid: data.contest?.id
-      })
+    getSubmissionContext: () => getSubmissionContext(selectedDocument),
+    submitProblem: ({ language }) => {
+      if (!selectedDocument || selectedDocument.isClosed) {
+        vscode.window.showErrorMessage('请选择要提交的代码文件。');
+        return false;
+      }
+      const submissionContext = getSubmissionContext(selectedDocument);
+      const selectedLanguage = submissionContext.languages.find(
+        option => option.label === language
+      );
+      if (!selectedLanguage) {
+        vscode.window.showErrorMessage('当前文件不支持所选的提交语言。');
+        return false;
+      }
+      return submitDocument(
+        {
+          pid: data.problem.pid,
+          cid: data.contest?.id
+        },
+        selectedDocument,
+        selectedLanguage
+      );
+    }
   });
+  const postSubmissionContext = () =>
+    panel.webview.postMessage({
+      type: 'submissionContextChanged',
+      data: getSubmissionContext(selectedDocument)
+    });
+  const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(
+    editor => {
+      if (!editor) return;
+      selectedDocument = editor.document;
+      void postSubmissionContext();
+    }
+  );
+  const closeDocumentListener = vscode.workspace.onDidCloseTextDocument(
+    document => {
+      if (document !== selectedDocument) return;
+      selectedDocument = undefined;
+      void postSubmissionContext();
+    }
+  );
   const jumpToCphListener = jumpToCphEventEmitter.event(() => {
     if (panel.active) sendCphMessage(data);
   });
-  panel.onDidDispose(() => jumpToCphListener.dispose());
+  panel.onDidDispose(() => {
+    jumpToCphListener.dispose();
+    activeEditorListener.dispose();
+    closeDocumentListener.dispose();
+  });
   const tagsArray = Array.from((await tagManager.getAllTags()).values());
   panel.webview.html = getReactWebviewHtml(
     panel.webview,
