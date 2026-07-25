@@ -26,26 +26,25 @@ export default async function showProblemWebview(data: ProblemData) {
     jumpToCph: () => sendCphMessage(data),
     getSubmissionContext: () => getSubmissionContext(selectedDocument),
     submitProblem: ({ language }) => {
-      if (!selectedDocument || selectedDocument.isClosed) {
-        vscode.window.showErrorMessage('请选择要提交的代码文件。');
-        return false;
-      }
+      const problem = {
+        pid: data.problem.pid,
+        cid: data.contest?.id
+      };
+      if (!selectedDocument || selectedDocument.isClosed)
+        return vscode.commands.executeCommand<boolean>(
+          'luogu.sumbitCode',
+          problem
+        );
       const submissionContext = getSubmissionContext(selectedDocument);
       const selectedLanguage = submissionContext.languages.find(
         option => option.label === language
       );
-      if (!selectedLanguage) {
-        vscode.window.showErrorMessage('当前文件不支持所选的提交语言。');
-        return false;
-      }
-      return submitDocument(
-        {
-          pid: data.problem.pid,
-          cid: data.contest?.id
-        },
-        selectedDocument,
-        selectedLanguage
-      );
+      if (!selectedLanguage)
+        return vscode.commands.executeCommand<boolean>(
+          'luogu.sumbitCode',
+          problem
+        );
+      return submitDocument(problem, selectedDocument, selectedLanguage);
     }
   });
   const postSubmissionContext = () =>

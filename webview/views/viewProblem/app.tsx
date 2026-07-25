@@ -70,7 +70,7 @@ export default function Problem({ children: data }: { children: ProblemData }) {
     );
   }, [submissionContext]);
   const submitCurrentDocument = async () => {
-    if (!submissionLanguage || submitting) return;
+    if (submitting) return;
     setSubmitting(true);
     try {
       await send('submitProblem', { language: submissionLanguage });
@@ -124,16 +124,14 @@ export default function Problem({ children: data }: { children: ProblemData }) {
               <VSCodeButton
                 onClick={submitCurrentDocument}
                 appearance="primary"
-                disabled={
-                  submitting ||
-                  !submissionContext.fileName ||
-                  submissionContext.languages.length === 0
-                }
+                disabled={submitting}
                 title={submissionContext.filePath}
               >
                 <div>
-                  <FontAwesomeIcon icon={faPaperPlane} /> 提交{' '}
-                  {submissionContext.fileName ?? '代码'}
+                  <FontAwesomeIcon icon={faPaperPlane} />{' '}
+                  {submissionContext.fileName
+                    ? `提交 ${submissionContext.fileName}`
+                    : '提交代码'}
                 </div>
               </VSCodeButton>
               <VSCodeDropdown
