@@ -8,26 +8,8 @@ import jumpToCphEventEmitter from './jumpToCphEventEmitter';
 import { tagManager } from '@/utils/tagManager';
 import { getSubmissionContext, submitDocument } from '@/features/submit';
 
-const isSupportedSubmissionDocument = (document: vscode.TextDocument) =>
-  getSubmissionContext(document).languages.length > 0;
-
-const findVisibleSubmissionDocument = () => {
-  const activeDocument = vscode.window.activeTextEditor?.document;
-  if (
-    activeDocument &&
-    !activeDocument.isClosed &&
-    isSupportedSubmissionDocument(activeDocument)
-  )
-    return activeDocument;
-  return vscode.window.visibleTextEditors
-    .map(editor => editor.document)
-    .find(
-      document => !document.isClosed && isSupportedSubmissionDocument(document)
-    );
-};
-
 export default async function showProblemWebview(data: ProblemData) {
-  let selectedDocument = findVisibleSubmissionDocument();
+  let selectedDocument = vscode.window.activeTextEditor?.document;
   const panel = vscode.window.createWebviewPanel(
     'luogu.problemPanel',
     `${data.problem.pid} ${data.problem.title ?? data.problem.content.name}`,
@@ -42,10 +24,7 @@ export default async function showProblemWebview(data: ProblemData) {
   useWebviewResponseHandle(panel.webview, {
     checkCph: checkCPH,
     jumpToCph: () => sendCphMessage(data),
-    getSubmissionContext: () => {
-      selectedDocument = findVisibleSubmissionDocument() ?? selectedDocument;
-      return getSubmissionContext(selectedDocument);
-    },
+    getSubmissionContext: () => getSubmissionContext(selectedDocument),
     submitProblem: ({ language }) => {
       if (!selectedDocument || selectedDocument.isClosed) {
         vscode.window.showErrorMessage('请选择要提交的代码文件。');
@@ -76,23 +55,15 @@ export default async function showProblemWebview(data: ProblemData) {
     });
   const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(
     editor => {
-      if (!editor || !isSupportedSubmissionDocument(editor.document)) return;
+      if (!editor) return;
       selectedDocument = editor.document;
-      void postSubmissionContext();
-    }
-  );
-  const visibleEditorsListener = vscode.window.onDidChangeVisibleTextEditors(
-    () => {
-      const visibleDocument = findVisibleSubmissionDocument();
-      if (!visibleDocument || visibleDocument === selectedDocument) return;
-      selectedDocument = visibleDocument;
       void postSubmissionContext();
     }
   );
   const closeDocumentListener = vscode.workspace.onDidCloseTextDocument(
     document => {
       if (document !== selectedDocument) return;
-      selectedDocument = findVisibleSubmissionDocument();
+      selectedDocument = undefined;
       void postSubmissionContext();
     }
   );
@@ -102,7 +73,6 @@ export default async function showProblemWebview(data: ProblemData) {
   panel.onDidDispose(() => {
     jumpToCphListener.dispose();
     activeEditorListener.dispose();
-    visibleEditorsListener.dispose();
     closeDocumentListener.dispose();
   });
   const tagsArray = Array.from((await tagManager.getAllTags()).values());
