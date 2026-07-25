@@ -10,13 +10,6 @@ export type WebviewResponseMessage<D> = {
   error?: string;
   uuid: UUID;
 };
-export type ContestProblemNavigation = {
-  contestName: string;
-  problems: {
-    pid: string;
-    title: string;
-  }[];
-};
 export type WebviewMessage<
   REQ extends WebviewRequestMessage<string, unknown>,
   RES extends WebviewResponseMessage<unknown>
@@ -90,14 +83,6 @@ type SubmitProblemMessageType = WebviewMessage<
   WebviewRequestMessage<'submitProblem', void>,
   WebviewResponseMessage<boolean>
 >;
-type GetContestProblemNavigationMessageType = WebviewMessage<
-  WebviewRequestMessage<'getContestProblemNavigation', void>,
-  WebviewResponseMessage<ContestProblemNavigation | null>
->;
-type OpenContestProblemMessageType = WebviewMessage<
-  WebviewRequestMessage<'openContestProblem', { pid: string }>,
-  WebviewResponseMessage<import('luogu-api').ProblemData>
->;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,
   WebviewResponseMessage<import('@/model/article').default>
@@ -105,6 +90,17 @@ type GetSolutionDetailsMessageType = WebviewMessage<
 type VoteArticleMessageType = WebviewMessage<
   WebviewRequestMessage<'voteArticle', { lid: string; type: 1 | 0 | -1 }>,
   WebviewResponseMessage<{ upvotes: number; voted: 1 | 0 | -1 }>
+>;
+type GetContestProblemNavigationMessageType = WebviewMessage<
+  WebviewRequestMessage<'getContestProblemNavigation', void>,
+  WebviewResponseMessage<
+    | import('@/features/viewProblem/contestProblemNavigation').ContestProblemNavigation
+    | null
+  >
+>;
+type OpenContestProblemMessageType = WebviewMessage<
+  WebviewRequestMessage<'openContestProblem', { pid: string }>,
+  WebviewResponseMessage<import('luogu-api').ProblemData>
 >;
 type ContestRanklist = WebviewMessage<
   WebviewRequestMessage<'ContestRanklist', { page: number }>,
@@ -146,10 +142,10 @@ type MessageTypes = MessageTypesBase<
     checkCphMessageType,
     JumpToCphMessageType,
     SubmitProblemMessageType,
-    GetContestProblemNavigationMessageType,
-    OpenContestProblemMessageType,
     GetSolutionDetailsMessageType,
     VoteArticleMessageType,
+    GetContestProblemNavigationMessageType,
+    OpenContestProblemMessageType,
     ContestRanklist,
     ContestReload,
     ContestJoin,

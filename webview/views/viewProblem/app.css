@@ -95,18 +95,6 @@
   > header.withContestNavigation {
     border-bottom: none;
   }
-  > nav.contestProblemNavigation {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 0 0 0.67em;
-    margin-bottom: 0.67em;
-    border-bottom: 1px solid #7f7f7f7f;
-    > vscode-button {
-      min-width: 36px;
-    }
-  }
   div.problemSamples {
     > div {
       display: grid;

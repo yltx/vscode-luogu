@@ -40,14 +40,14 @@ const requestValidators = {
   checkCph: isVoid,
   jumpToCph: isVoid,
   submitProblem: isVoid,
-  getContestProblemNavigation: isVoid,
-  openContestProblem: (data: unknown) => hasShape(data, { pid: isString }),
   getSolutionDetails: (data: unknown) => hasShape(data, { index: isInteger }),
   voteArticle: (data: unknown) =>
     hasShape(data, {
       lid: isString,
       type: value => value === 1 || value === 0 || value === -1
     }),
+  getContestProblemNavigation: isVoid,
+  openContestProblem: (data: unknown) => hasShape(data, { pid: isString }),
   ContestRanklist: (data: unknown) => hasShape(data, { page: isInteger }),
   ContestReload: isVoid,
   ContestJoin: isVoid,

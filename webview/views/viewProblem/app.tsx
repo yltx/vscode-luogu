@@ -12,9 +12,9 @@ const { formatTime, formatMemory } = await import('@/utils/stringUtils');
 import '@w/utils/tags';
 
 import { ProblemData } from 'luogu-api';
-import type { ContestProblemNavigation } from '@w/webviewMessage';
 
 import CphIcon from './cphIcon';
+import ContestProblemNavigation from './contestProblemNavigation';
 import '@w/common.css';
 import './app.css';
 import { VSCodeDropdown, VSCodeOption } from '@vscode/webview-ui-toolkit/react';
@@ -37,17 +37,6 @@ function formatMemoryLimit(memoryLimit: number[]) {
     : `${minmemorystr}~${maxmemorystr}`;
 }
 
-function formatContestProblemIndex(index: number) {
-  let value = index + 1;
-  let result = '';
-  while (value > 0) {
-    value--;
-    result = String.fromCharCode(65 + (value % 26)) + result;
-    value = Math.floor(value / 26);
-  }
-  return result;
-}
-
 export default function Problem({
   children: initialData
 }: {
@@ -56,34 +45,23 @@ export default function Problem({
   const [data, setData] = useState(initialData);
   const languagesList = Object.keys(data.translations);
   const [cphType, setCphType] = useState(false);
-  const [contestNavigation, setContestNavigation] =
-    useState<ContestProblemNavigation | null>(null);
   const [choosedLanguage, setChoosedLanguage] = useState(
     'zh-CN' in data.translations ? 'zh-CN' : languagesList[0]
   );
-  useEffect(() => {
-    void send('checkCph', undefined).then(res => setCphType(res));
-    if (data.contest)
-      void send('getContestProblemNavigation', undefined)
-        .then(setContestNavigation)
-        .catch(() => setContestNavigation(null));
-  }, []);
+  useEffect(
+    () => void send('checkCph', undefined).then(res => setCphType(res)),
+    []
+  );
   useEffect(() => {
     setChoosedLanguage(
-      'zh-CN' in data.translations
-        ? 'zh-CN'
-        : Object.keys(data.translations)[0]
+      'zh-CN' in data.translations ? 'zh-CN' : Object.keys(data.translations)[0]
     );
   }, [data.problem.pid]);
   const problemContent =
     data.translations[choosedLanguage] || data.problem.content;
   return (
     <>
-      <header
-        className={
-          contestNavigation?.problems.length ? 'withContestNavigation' : ''
-        }
-      >
+      <header className={data.contest ? 'withContestNavigation' : ''}>
         <div>
           <h1>
             <a
@@ -180,42 +158,7 @@ export default function Problem({
           </div>
         </div>
       </header>
-      {contestNavigation && contestNavigation.problems.length > 0 && (
-        <nav
-          className="contestProblemNavigation"
-          aria-label={contestNavigation.contestName}
-        >
-          {contestNavigation.problems.map((problem, index) => {
-            const isCurrentProblem = problem.pid === data.problem.pid;
-            const tooltip =
-              `${problem.pid} [${contestNavigation.contestName}] ` +
-              problem.title;
-            return (
-              <VSCodeButton
-                key={problem.pid}
-                appearance={isCurrentProblem ? 'primary' : 'secondary'}
-                aria-current={isCurrentProblem ? 'page' : undefined}
-                aria-label={tooltip}
-                title={tooltip}
-                onClick={
-                  isCurrentProblem
-                    ? undefined
-                    : () => {
-                        void send('openContestProblem', { pid: problem.pid })
-                          .then(problemData => {
-                            setData(problemData);
-                            window.scrollTo({ top: 0 });
-                          })
-                          .catch(() => {});
-                      }
-                }
-              >
-                {formatContestProblemIndex(index)}
-              </VSCodeButton>
-            );
-          })}
-        </nav>
-      )}
+      <ContestProblemNavigation data={data} onProblemChange={setData} />
       <div>
         {problemContent.background && (
           <div>
