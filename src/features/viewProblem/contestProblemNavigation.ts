@@ -15,10 +15,16 @@ export const createContestProblemNavigationHandlers = (
       if (!contestData.contestProblems) return null;
       return {
         contestName: contestData.contest.name,
-        problems: contestData.contestProblems.map(({ problem }) => ({
-          pid: problem.pid,
-          title: problem.title
-        }))
+        problems: contestData.contestProblems.map(({ problem }) => {
+          const title =
+            ('name' in problem && typeof problem.name === 'string'
+              ? problem.name
+              : problem.title) || problem.pid;
+          return {
+            pid: problem.pid,
+            title
+          };
+        })
       } satisfies ContestProblemNavigation;
     } catch {
       return null;
