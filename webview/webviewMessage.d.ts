@@ -96,7 +96,7 @@ type GetContestProblemNavigationMessageType = WebviewMessage<
 >;
 type OpenContestProblemMessageType = WebviewMessage<
   WebviewRequestMessage<'openContestProblem', { pid: string }>,
-  WebviewResponseMessage<boolean>
+  WebviewResponseMessage<import('luogu-api').ProblemData>
 >;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,

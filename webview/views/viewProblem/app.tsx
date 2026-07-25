@@ -48,7 +48,12 @@ function formatContestProblemIndex(index: number) {
   return result;
 }
 
-export default function Problem({ children: data }: { children: ProblemData }) {
+export default function Problem({
+  children: initialData
+}: {
+  children: ProblemData;
+}) {
+  const [data, setData] = useState(initialData);
   const languagesList = Object.keys(data.translations);
   const [cphType, setCphType] = useState(false);
   const [contestNavigation, setContestNavigation] =
@@ -63,6 +68,13 @@ export default function Problem({ children: data }: { children: ProblemData }) {
         .then(setContestNavigation)
         .catch(() => setContestNavigation(null));
   }, []);
+  useEffect(() => {
+    setChoosedLanguage(
+      'zh-CN' in data.translations
+        ? 'zh-CN'
+        : Object.keys(data.translations)[0]
+    );
+  }, [data.problem.pid]);
   const problemContent =
     data.translations[choosedLanguage] || data.problem.content;
   return (
@@ -188,8 +200,14 @@ export default function Problem({ children: data }: { children: ProblemData }) {
                 onClick={
                   isCurrentProblem
                     ? undefined
-                    : () =>
+                    : () => {
                         void send('openContestProblem', { pid: problem.pid })
+                          .then(problemData => {
+                            setData(problemData);
+                            window.scrollTo({ top: 0 });
+                          })
+                          .catch(() => {});
+                      }
                 }
               >
                 {formatContestProblemIndex(index)}

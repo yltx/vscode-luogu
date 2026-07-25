@@ -6,9 +6,11 @@ import useWebviewResponseHandle from '@/utils/webviewResponse';
 import { checkCPH, sendCphMessage } from './cph';
 import jumpToCphEventEmitter from './jumpToCphEventEmitter';
 import { tagManager } from '@/utils/tagManager';
-import { searchContest } from '@/utils/api';
+import { getProblemData, searchContest } from '@/utils/api';
+import { processAxiosError } from '@/utils/workspaceUtils';
 
-export default async function showProblemWebview(data: ProblemData) {
+export default async function showProblemWebview(initialData: ProblemData) {
+  let data = initialData;
   const panel = vscode.window.createWebviewPanel(
     'luogu.problemPanel',
     `${data.problem.pid} ${data.problem.title ?? data.problem.content.name}`,
@@ -44,11 +46,31 @@ export default async function showProblemWebview(data: ProblemData) {
         return null;
       }
     },
-    openContestProblem: ({ pid }) =>
-      vscode.commands.executeCommand<boolean>('luogu.searchProblem', {
-        pid,
-        cid: data.contest?.id
-      })
+    openContestProblem: async ({ pid }) => {
+      try {
+        const problemData = await getProblemData(pid, data.contest?.id);
+        await globalThis.luogu.historyTreeviewProvider.addItem({
+          type: 'problem',
+          pid: problemData.problem.pid,
+          contest: problemData.contest
+            ? {
+                contestId: problemData.contest.id,
+                title: problemData.contest.name
+              }
+            : undefined,
+          title:
+            problemData.problem.title ?? problemData.problem.content.name
+        });
+        data = problemData;
+        panel.title = `${data.problem.pid} ${
+          data.problem.title ?? data.problem.content.name
+        }`;
+        return data;
+      } catch (error) {
+        processAxiosError('查找题目')(error);
+        throw error;
+      }
+    }
   });
   const jumpToCphListener = jumpToCphEventEmitter.event(() => {
     if (panel.active) sendCphMessage(data);
