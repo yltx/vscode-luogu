@@ -6,7 +6,11 @@ import useWebviewResponseHandle from '@/utils/webviewResponse';
 import { checkCPH, sendCphMessage } from './cph';
 import jumpToCphEventEmitter from './jumpToCphEventEmitter';
 import { tagManager } from '@/utils/tagManager';
-import { getSubmissionContext, submitDocument } from '@/features/submit';
+import {
+  getSubmissionContext,
+  selectOpenDocument,
+  submitDocument
+} from '@/features/submit';
 
 export default async function showProblemWebview(data: ProblemData) {
   let selectedDocument = vscode.window.activeTextEditor?.document;
@@ -24,18 +28,17 @@ export default async function showProblemWebview(data: ProblemData) {
   useWebviewResponseHandle(panel.webview, {
     checkCph: checkCPH,
     jumpToCph: () => sendCphMessage(data),
-    getSubmissionContext: () => getSubmissionContext(selectedDocument),
-    submitProblem: ({ language }) => {
+    getSubmissionContext: () =>
+      getSubmissionContext(selectedDocument, data.lastLanguage),
+    submitProblem: async ({ language }) => {
       const problem = {
         pid: data.problem.pid,
         cid: data.contest?.id
       };
-      if (!selectedDocument || selectedDocument.isClosed)
-        return vscode.commands.executeCommand<boolean>(
-          'luogu.sumbitCode',
-          problem
-        );
-      const submissionContext = getSubmissionContext(selectedDocument);
+      const submissionContext = getSubmissionContext(
+        selectedDocument,
+        data.lastLanguage
+      );
       const selectedLanguage = submissionContext.languages.find(
         option => option.label === language
       );
@@ -44,13 +47,19 @@ export default async function showProblemWebview(data: ProblemData) {
           'luogu.sumbitCode',
           problem
         );
-      return submitDocument(problem, selectedDocument, selectedLanguage);
+      let submissionDocument = selectedDocument;
+      if (!submissionDocument || submissionDocument.isClosed) {
+        const selectedEditor = await selectOpenDocument();
+        if (!selectedEditor) return false;
+        submissionDocument = selectedEditor.document;
+      }
+      return submitDocument(problem, submissionDocument, selectedLanguage);
     }
   });
   const postSubmissionContext = () =>
     panel.webview.postMessage({
       type: 'submissionContextChanged',
-      data: getSubmissionContext(selectedDocument)
+      data: getSubmissionContext(selectedDocument, data.lastLanguage)
     });
   const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(
     editor => {

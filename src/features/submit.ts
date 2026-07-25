@@ -19,6 +19,20 @@ type SubmissionProblem =
   | import('@/features/history/historyItem').ProblemHistoryItem
   | { pid: string; cid?: number };
 type SubmissionLanguage = { id: number; O2?: true };
+type SubmissionLanguageOption = ProblemSubmissionContext['languages'][number];
+
+const getLanguageOptions = (
+  languageName: keyof typeof languageFamily
+): SubmissionLanguageOption[] => {
+  const languageData = languageFamily[languageName];
+  return 'id' in languageData
+    ? [{ label: languageName, id: languageData.id }]
+    : Object.entries(languageData).map(([label, value]) => ({
+        label,
+        id: value.id,
+        ...('O2' in value && value.O2 ? { O2: true as const } : {})
+      }));
+};
 
 export default function registerSubmitFeature(
   context: vscode.ExtensionContext
@@ -70,12 +84,22 @@ export default function registerSubmitFeature(
 }
 
 export function getSubmissionContext(
-  document?: vscode.TextDocument
+  document?: vscode.TextDocument,
+  lastLanguage?: number
 ): ProblemSubmissionContext {
-  if (!document || document.isClosed)
+  if (!document || document.isClosed) {
+    const languages = (
+      Object.keys(languageFamily) as (keyof typeof languageFamily)[]
+    ).flatMap(getLanguageOptions);
+    const defaultLanguage =
+      languages.find(language => language.id === lastLanguage && language.O2)
+        ?.label ??
+      languages.find(language => language.id === lastLanguage)?.label;
     return {
-      languages: []
+      languages,
+      defaultLanguage
     };
+  }
 
   const fileName = path.basename(document.fileName);
   const extension = path.extname(fileName).slice(1).toLowerCase();
@@ -90,15 +114,7 @@ export function getSubmissionContext(
       languages: []
     };
 
-  const languageData = languageFamily[languageName];
-  const languages: ProblemSubmissionContext['languages'] =
-    'id' in languageData
-      ? [{ label: languageName, id: languageData.id }]
-      : Object.entries(languageData).map(([label, value]) => ({
-          label,
-          id: value.id,
-          ...('O2' in value && value.O2 ? { O2: true as const } : {})
-        }));
+  const languages = getLanguageOptions(languageName);
   const configuredDefault = vscode.workspace
     .getConfiguration('luogu')
     .get<Record<string, string>>('defaultLanguageVersion', {})[languageName];
@@ -144,7 +160,9 @@ export async function submitDocument(
   }
 }
 
-async function selectOpenDocument(): Promise<vscode.TextEditor | undefined> {
+export async function selectOpenDocument(): Promise<
+  vscode.TextEditor | undefined
+> {
   const res = await vscode.window.showOpenDialog({
     canSelectFiles: true,
     canSelectMany: false,
