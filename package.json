@@ -594,10 +594,11 @@
     "prettier": "npx prettier . -w",
     "typecheck": "tsc --noEmit -p tsconfig.check.json",
     "test": "vitest run",
+    "test:daily-punch": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daily-punch.test.ps1",
     "test:release": "node --test scripts/release-policy.test.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "ci": "npm run lint && npm run typecheck && npm run test && npm run test:release"
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run test:release && npm run test:daily-punch"
   },
   "devDependencies": {
     "@types/katex": "^0.16.5",

@@ -14,5 +14,6 @@ productIcons/
 .kilo/
 AGENTS.md
 docs/
-scripts/
+scripts/**
+!scripts/daily-punch.ps1
 vitest.config.ts

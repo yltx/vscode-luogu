@@ -28,3 +28,37 @@
 上传前运行 `npm run fix;npm run prettier`
 
 暂定，多在群里商量吧。
+
+## Windows 每日自动打卡脚本
+
+仓库和 VSIX 均提供 `scripts/daily-punch.ps1`，用于当前 Windows 用户的每日洛谷打卡。脚本不会保存复制自浏览器的 CSRF token，也不会硬编码完整 Cookie；每次运行都会使用 `_uid` 和 `__client_id` 从洛谷首页动态获取 CSRF token。
+
+1. 从浏览器登录洛谷后，只复制 `_uid` 和 `__client_id` 的值。不要提交或分享这些值。
+2. 交互式保存凭据：
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daily-punch.ps1 -Mode Setup
+   ```
+
+   `__client_id` 会通过 Windows DPAPI 加密，只能由当前 Windows 用户解密。
+
+3. 手动验证一次：
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daily-punch.ps1 -Mode Run
+   ```
+
+4. 安装每日 08:00 自动运行的计划任务：
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daily-punch.ps1 -Mode InstallTask -At 08:00
+   ```
+
+5. 查看状态或卸载：
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daily-punch.ps1 -Mode Status
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daily-punch.ps1 -Mode UninstallTask
+   ```
+
+凭据和日志默认位于 `%LOCALAPPDATA%\vscode-luogu\daily-punch`，不会写入仓库。登录失效后重新运行 `Setup` 即可。

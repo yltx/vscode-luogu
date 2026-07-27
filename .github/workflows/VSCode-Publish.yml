@@ -53,6 +53,7 @@ jobs:
             --github-output "$GITHUB_OUTPUT"
       - name: Validate
         run: npm run ci
+        shell: pwsh
       - name: Package
         run: npm run pack
       - name: Upload to Github Releases
