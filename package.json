@@ -594,7 +594,7 @@
     "prettier": "npx prettier . -w",
     "typecheck": "tsc --noEmit -p tsconfig.check.json",
     "test": "vitest run",
-    "test:daily-punch": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daily-punch.test.ps1",
+    "test:daily-punch": "node scripts/run-daily-punch-test.mjs",
     "test:release": "node --test scripts/release-policy.test.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
