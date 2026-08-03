@@ -7,8 +7,12 @@ const { visit, SKIP } = await import('unist-util-visit');
 const { faBilibili } = await import('@fortawesome/free-brands-svg-icons');
 const { icon } = await import('@fortawesome/fontawesome-svg-core');
 const { default: rehypeHighlight } = await import('rehype-highlight');
+const { default: remarkDirective } = await import('remark-directive');
+const { remarkLuoguMarkdownExtensions, rehypeLuoguMarkdownExtensions } =
+  await import('./luoguMarkdownExtensions');
 await import('../copyablePreElement');
 import './hljsTheme';
+import './luoguMarkdownExtensions.css';
 import 'katex/dist/katex.css';
 
 const bilibiliIconHastElement = hastUtilFromHtml(icon(faBilibili).html[0], {
@@ -24,8 +28,10 @@ const rehypeReactConfig: import('hast-util-to-jsx-runtime').Options = {
 };
 
 const processor = getLuoguProcessor({
+  remarkPlugins: [remarkDirective, remarkLuoguMarkdownExtensions],
   rehypePlugins: [
     rehypeHighlight,
+    rehypeLuoguMarkdownExtensions,
     // vscode 里没法放 bilibili 的 iframe，拿链接顶一下
     () => (tree: import('hast').Root) =>
       visit(tree, 'element', function (e) {
