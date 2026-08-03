@@ -91,6 +91,17 @@ type VoteArticleMessageType = WebviewMessage<
   WebviewRequestMessage<'voteArticle', { lid: string; type: 1 | 0 | -1 }>,
   WebviewResponseMessage<{ upvotes: number; voted: 1 | 0 | -1 }>
 >;
+type GetContestProblemNavigationMessageType = WebviewMessage<
+  WebviewRequestMessage<'getContestProblemNavigation', void>,
+  WebviewResponseMessage<
+    | import('./views/viewProblem/contestProblemNavigationTypes').ContestProblemNavigation
+    | null
+  >
+>;
+type OpenContestProblemMessageType = WebviewMessage<
+  WebviewRequestMessage<'openContestProblem', { pid: string }>,
+  WebviewResponseMessage<import('luogu-api').ProblemData | null>
+>;
 type ContestRanklist = WebviewMessage<
   WebviewRequestMessage<'ContestRanklist', { page: number }>,
   WebviewResponseMessage<import('luogu-api').GetScoreboardResponse>
@@ -133,6 +144,8 @@ type MessageTypes = MessageTypesBase<
     SubmitProblemMessageType,
     GetSolutionDetailsMessageType,
     VoteArticleMessageType,
+    GetContestProblemNavigationMessageType,
+    OpenContestProblemMessageType,
     ContestRanklist,
     ContestReload,
     ContestJoin,

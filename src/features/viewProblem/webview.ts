@@ -1,4 +1,5 @@
 import { getReactWebviewHtml } from '@/utils/html';
+import { createContestProblemNavigationHandlers } from './contestProblemNavigation';
 import { getWebviewViewColumn } from '@/utils/workspaceUtils';
 import { ProblemData } from 'luogu-api';
 import * as vscode from 'vscode';
@@ -20,6 +21,7 @@ export default async function showProblemWebview(data: ProblemData) {
     }
   );
   useWebviewResponseHandle(panel.webview, {
+    ...createContestProblemNavigationHandlers(panel, data),
     checkCph: checkCPH,
     jumpToCph: () => sendCphMessage(data),
     submitProblem: () =>

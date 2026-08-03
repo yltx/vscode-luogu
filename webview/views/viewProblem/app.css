@@ -92,6 +92,9 @@
       }
     }
   }
+  > header.withContestNavigation {
+    border-bottom: none;
+  }
   div.problemSamples {
     > div {
       display: grid;

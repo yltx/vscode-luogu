@@ -46,6 +46,8 @@ const requestValidators = {
       lid: isString,
       type: value => value === 1 || value === 0 || value === -1
     }),
+  getContestProblemNavigation: isVoid,
+  openContestProblem: (data: unknown) => hasShape(data, { pid: isString }),
   ContestRanklist: (data: unknown) => hasShape(data, { page: isInteger }),
   ContestReload: isVoid,
   ContestJoin: isVoid,

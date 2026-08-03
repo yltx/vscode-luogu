@@ -14,6 +14,7 @@ import '@w/utils/tags';
 import { ProblemData } from 'luogu-api';
 
 import CphIcon from './cphIcon';
+import ContestProblemNavigation from './contestProblemNavigation';
 import '@w/common.css';
 import './app.css';
 import { VSCodeDropdown, VSCodeOption } from '@vscode/webview-ui-toolkit/react';
@@ -36,7 +37,12 @@ function formatMemoryLimit(memoryLimit: number[]) {
     : `${minmemorystr}~${maxmemorystr}`;
 }
 
-export default function Problem({ children: data }: { children: ProblemData }) {
+export default function Problem({
+  children: initialData
+}: {
+  children: ProblemData;
+}) {
+  const [data, setData] = useState(initialData);
   const languagesList = Object.keys(data.translations);
   const [cphType, setCphType] = useState(false);
   const [choosedLanguage, setChoosedLanguage] = useState(
@@ -46,11 +52,16 @@ export default function Problem({ children: data }: { children: ProblemData }) {
     () => void send('checkCph', undefined).then(res => setCphType(res)),
     []
   );
+  useEffect(() => {
+    setChoosedLanguage(
+      'zh-CN' in data.translations ? 'zh-CN' : Object.keys(data.translations)[0]
+    );
+  }, [data.problem.pid]);
   const problemContent =
     data.translations[choosedLanguage] || data.problem.content;
   return (
     <>
-      <header>
+      <header className={data.contest ? 'withContestNavigation' : ''}>
         <div>
           <h1>
             <a
@@ -147,6 +158,7 @@ export default function Problem({ children: data }: { children: ProblemData }) {
           </div>
         </div>
       </header>
+      <ContestProblemNavigation data={data} onProblemChange={setData} />
       <div>
         {problemContent.background && (
           <div>
