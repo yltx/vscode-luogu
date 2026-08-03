@@ -1,0 +1,142 @@
+.luogu-align-center {
+  text-align: center;
+}
+
+.luogu-align-right {
+  text-align: right;
+}
+
+.luogu-epigraph {
+  box-sizing: border-box;
+  width: 50%;
+  margin: 1em 0 1em 50%;
+  padding: 0;
+  border-left: 0;
+  background: transparent;
+}
+
+.luogu-epigraph > :not(footer) {
+  margin: 0;
+}
+
+.luogu-epigraph-with-footer > :nth-last-child(2) {
+  padding-bottom: 0.15em;
+  border-bottom: 1px solid var(--vscode-foreground);
+}
+
+.luogu-epigraph > footer {
+  margin-top: 0.25em;
+  text-align: right;
+}
+
+.luogu-callout {
+  --luogu-callout-color: var(--vscode-textLink-foreground);
+  --luogu-callout-background: var(
+    --vscode-inputValidation-infoBackground,
+    transparent
+  );
+  --luogu-callout-border: var(
+    --vscode-inputValidation-infoBorder,
+    var(--luogu-callout-color)
+  );
+  margin: 1em 0;
+  padding: 0.75em 1em;
+  border: 1px solid var(--luogu-callout-border);
+  border-left: 4px solid var(--luogu-callout-color);
+  border-radius: 4px;
+  background: var(--luogu-callout-background);
+}
+
+.luogu-callout-success {
+  --luogu-callout-color: var(--vscode-testing-iconPassed, #2ea043);
+  --luogu-callout-background: var(
+    --vscode-editorWidget-background,
+    transparent
+  );
+  --luogu-callout-border: var(--luogu-callout-color);
+}
+
+.luogu-callout-warning {
+  --luogu-callout-color: var(--vscode-editorWarning-foreground, #d29922);
+  --luogu-callout-background: var(
+    --vscode-inputValidation-warningBackground,
+    transparent
+  );
+  --luogu-callout-border: var(
+    --vscode-inputValidation-warningBorder,
+    var(--luogu-callout-color)
+  );
+}
+
+.luogu-callout-error {
+  --luogu-callout-color: var(--vscode-editorError-foreground, #f85149);
+  --luogu-callout-background: var(
+    --vscode-inputValidation-errorBackground,
+    transparent
+  );
+  --luogu-callout-border: var(
+    --vscode-inputValidation-errorBorder,
+    var(--luogu-callout-color)
+  );
+}
+
+.luogu-callout > summary {
+  color: var(--luogu-callout-color);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.luogu-callout[open] > summary {
+  margin-bottom: 0.5em;
+}
+
+.luogu-callout > :last-child {
+  margin-bottom: 0;
+}
+
+.luogu-cute-table-tuack th,
+.luogu-cute-table-tuack td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.luogu-cute-table-tuack th {
+  background: var(--vscode-list-hoverBackground);
+}
+
+pre .luogu-code-line {
+  display: block;
+  min-height: 1em;
+  padding: 0 0.75em;
+}
+
+pre.luogu-code-enhanced code {
+  display: block;
+  margin: 0 -0.75em;
+}
+
+pre.luogu-code-line-numbers code {
+  counter-reset: luogu-code-line;
+}
+
+pre.luogu-code-line-numbers .luogu-code-line {
+  position: relative;
+  padding-left: 4.25em;
+}
+
+pre.luogu-code-line-numbers .luogu-code-line::before {
+  position: absolute;
+  left: 0;
+  width: 3.25em;
+  counter-increment: luogu-code-line;
+  content: counter(luogu-code-line);
+  color: var(--vscode-editorLineNumber-foreground);
+  text-align: right;
+  user-select: none;
+}
+
+pre .luogu-code-line-highlighted {
+  background: var(--vscode-editor-rangeHighlightBackground);
+  box-shadow: inset 3px 0
+    var(--vscode-editor-rangeHighlightBorder, var(--vscode-textLink-foreground));
+}
