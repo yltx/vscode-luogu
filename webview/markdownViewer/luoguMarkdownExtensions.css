@@ -7,12 +7,24 @@
 }
 
 .luogu-epigraph {
-  margin: 1em 0;
-  padding: 0.75em 1em;
+  box-sizing: border-box;
+  width: min(100%, 25rem);
+  margin: 1em 0 1em auto;
+  padding: 0;
+  border-left: 0;
+}
+
+.luogu-epigraph > :not(footer) {
+  margin: 0;
+}
+
+.luogu-epigraph:has(> footer) > :nth-last-child(2) {
+  padding-bottom: 0.15em;
+  border-bottom: 1px solid var(--vscode-foreground);
 }
 
 .luogu-epigraph > footer {
-  margin-top: 0.5em;
+  margin-top: 0.25em;
   text-align: right;
 }
 
