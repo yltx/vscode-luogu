@@ -8,7 +8,7 @@ export const createContestProblemNavigationHandlers = (
   panel: vscode.WebviewPanel,
   data: ProblemData
 ) => {
-  let latestOpenRequest = 0;
+  let isOpeningProblem = false;
 
   return {
     getContestProblemNavigation: async () => {
@@ -34,15 +34,10 @@ export const createContestProblemNavigationHandlers = (
       }
     },
     openContestProblem: async ({ pid }: { pid: string }) => {
-      const requestId = ++latestOpenRequest;
+      if (isOpeningProblem) return null;
+      isOpeningProblem = true;
       try {
         const problemData = await getProblemData(pid, data.contest?.id);
-        if (requestId !== latestOpenRequest) return null;
-
-        Object.assign(data, problemData);
-        panel.title = `${data.problem.pid} ${
-          data.problem.title ?? data.problem.content.name
-        }`;
         await globalThis.luogu.historyTreeviewProvider.addItem({
           type: 'problem',
           pid: problemData.problem.pid,
@@ -54,11 +49,17 @@ export const createContestProblemNavigationHandlers = (
             : undefined,
           title: problemData.problem.title ?? problemData.problem.content.name
         });
-        return requestId === latestOpenRequest ? problemData : null;
+
+        Object.assign(data, problemData);
+        panel.title = `${data.problem.pid} ${
+          data.problem.title ?? data.problem.content.name
+        }`;
+        return problemData;
       } catch (error) {
-        if (requestId === latestOpenRequest)
-          processAxiosError('查找题目')(error);
+        processAxiosError('查找题目')(error);
         throw error;
+      } finally {
+        isOpeningProblem = false;
       }
     }
   };

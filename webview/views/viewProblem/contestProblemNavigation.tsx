@@ -26,7 +26,8 @@ export default function ContestProblemNavigation({
   onProblemChange: (data: ProblemData) => void;
 }) {
   const [navigation, setNavigation] = useState<NavigationData | null>(null);
-  const latestOpenRequest = useRef(0);
+  const openingProblem = useRef(false);
+  const [isOpeningProblem, setIsOpeningProblem] = useState(false);
 
   useEffect(() => {
     if (!data.contest) return;
@@ -36,14 +37,20 @@ export default function ContestProblemNavigation({
   }, [data.contest?.id]);
 
   const openProblem = (pid: string) => {
-    const requestId = ++latestOpenRequest.current;
+    if (openingProblem.current) return;
+    openingProblem.current = true;
+    setIsOpeningProblem(true);
     void send('openContestProblem', { pid })
       .then(problemData => {
-        if (requestId !== latestOpenRequest.current || !problemData) return;
+        if (!problemData) return;
         onProblemChange(problemData);
         window.scrollTo({ top: 0 });
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        openingProblem.current = false;
+        setIsOpeningProblem(false);
+      });
   };
 
   if (!navigation || navigation.problems.length === 0) return null;
@@ -52,6 +59,7 @@ export default function ContestProblemNavigation({
     <nav
       className="contestProblemNavigation"
       aria-label={navigation.contestName}
+      aria-busy={isOpeningProblem}
     >
       {navigation.problems.map((problem, index) => {
         const isCurrentProblem = problem.pid === data.problem.pid;
@@ -64,6 +72,7 @@ export default function ContestProblemNavigation({
             aria-current={isCurrentProblem ? 'page' : undefined}
             aria-label={tooltip}
             title={tooltip}
+            disabled={isOpeningProblem}
             onClick={
               isCurrentProblem ? undefined : () => openProblem(problem.pid)
             }
