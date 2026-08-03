@@ -52,6 +52,7 @@ function transformDirective(node: MdastNode) {
     addMdastClass(node, 'luogu-epigraph');
     const label = node.children?.find(isDirectiveLabel);
     if (label && node.children) {
+      addMdastClass(node, 'luogu-epigraph-with-footer');
       node.children = node.children.filter(child => child !== label);
       (label.data ??= {}).hName = 'footer';
       node.children.push(label);
@@ -244,6 +245,7 @@ function enhanceCodeBlock(pre: Element) {
     }
     return line;
   });
+  addHastClass(pre, 'luogu-code-enhanced');
   if (showLineNumbers) addHastClass(pre, 'luogu-code-line-numbers');
 }
 
