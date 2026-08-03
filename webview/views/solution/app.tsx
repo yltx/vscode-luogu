@@ -62,7 +62,7 @@ function SolutionPage({
               </span>
               <span className="solution-id">
                 文章 ID：
-                <a href={'https://www.luogu.com/article/' + article.lid}>
+                <a href={'https://www.luogu.com.cn/article/' + article.lid}>
                   {article.lid}
                 </a>
               </span>
