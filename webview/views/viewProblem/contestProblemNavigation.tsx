@@ -1,4 +1,4 @@
-const { default: React, useEffect, useState } = await import('react');
+const { default: React, useEffect, useRef, useState } = await import('react');
 const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
 const { default: send } = await import('@w/webviewRequest');
 
@@ -26,6 +26,7 @@ export default function ContestProblemNavigation({
   onProblemChange: (data: ProblemData) => void;
 }) {
   const [navigation, setNavigation] = useState<NavigationData | null>(null);
+  const latestOpenRequest = useRef(0);
 
   useEffect(() => {
     if (!data.contest) return;
@@ -33,6 +34,17 @@ export default function ContestProblemNavigation({
       .then(setNavigation)
       .catch(() => setNavigation(null));
   }, [data.contest?.id]);
+
+  const openProblem = (pid: string) => {
+    const requestId = ++latestOpenRequest.current;
+    void send('openContestProblem', { pid })
+      .then(problemData => {
+        if (requestId !== latestOpenRequest.current || !problemData) return;
+        onProblemChange(problemData);
+        window.scrollTo({ top: 0 });
+      })
+      .catch(() => {});
+  };
 
   if (!navigation || navigation.problems.length === 0) return null;
 
@@ -53,16 +65,7 @@ export default function ContestProblemNavigation({
             aria-label={tooltip}
             title={tooltip}
             onClick={
-              isCurrentProblem
-                ? undefined
-                : () => {
-                    void send('openContestProblem', { pid: problem.pid })
-                      .then(problemData => {
-                        onProblemChange(problemData);
-                        window.scrollTo({ top: 0 });
-                      })
-                      .catch(() => {});
-                  }
+              isCurrentProblem ? undefined : () => openProblem(problem.pid)
             }
           >
             {formatContestProblemIndex(index)}
