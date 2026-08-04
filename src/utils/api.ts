@@ -27,16 +27,26 @@ import CsrfTokenManager from './csrfTokenManager';
 
 type EditableArticle = ArticleDetails & { content: string; top: number };
 let csrfTokenManager: CsrfTokenManager | undefined;
-let invalidSessionHandling: Promise<void> | undefined;
 const UNAUTHENTICATED_REDIRECT = 'LUOGU_UNAUTHENTICATED_REDIRECT';
 
-const invalidateSession = () =>
-  (invalidSessionHandling ??= (async () => {
-    await globalThis.luogu.authProvider.invalidateSession();
-    needLogin();
-  })().finally(() => {
-    invalidSessionHandling = undefined;
-  }));
+const invalidateSession = async (requestCookie?: Cookie | null) => {
+  if (!requestCookie?.uid) return false;
+  const invalidated =
+    await globalThis.luogu.authProvider.invalidateSession(requestCookie);
+  if (invalidated) needLogin();
+  return invalidated;
+};
+
+const errorChainHasMessage = (error: unknown, message: string) => {
+  const seen = new Set<Error>();
+  let current = error;
+  while (current instanceof Error && !seen.has(current)) {
+    if (current.message === message) return true;
+    seen.add(current);
+    current = current.cause;
+  }
+  return false;
+};
 
 const isUnauthenticatedError = (error: unknown) =>
   isAxiosError(error) &&
@@ -48,9 +58,7 @@ const isUnauthenticatedError = (error: unknown) =>
     ['未登录', '请先登录'].includes(error.response?.data.data?.errorMessage) ||
     error.response?.data.data?.errorType ===
       'LuoguWeb\\Spilopelia\\Exception\\UserUnloginException' ||
-    error.message === UNAUTHENTICATED_REDIRECT ||
-    (error.cause instanceof Error &&
-      error.cause.message === UNAUTHENTICATED_REDIRECT));
+    errorChainHasMessage(error, UNAUTHENTICATED_REDIRECT));
 
 export const CSRF_TOKEN_REGEX = /<meta name="csrf-token" content="(.*)">/;
 
@@ -169,7 +177,7 @@ export const axios = (() => {
           get.uid !== undefined &&
           get.uid != res.config.myInterceptors_cookie.uid
         ) {
-          await invalidateSession();
+          await invalidateSession(res.config.myInterceptors_cookie);
           throw Error('UnknownCookie');
         }
       }
@@ -179,7 +187,7 @@ export const axios = (() => {
       if (!isAxiosError(err)) throw err;
       if (err.config?.myInterceptors_notCheckCookie) throw err;
       if (isUnauthenticatedError(err)) {
-        await invalidateSession();
+        await invalidateSession(err.config?.myInterceptors_cookie);
         throw new Error('未登录', { cause: err });
       }
       if (!err.response) throw err;
@@ -189,7 +197,7 @@ export const axios = (() => {
           get.uid !== undefined &&
           get.uid != err.config.myInterceptors_cookie.uid
         ) {
-          await invalidateSession();
+          await invalidateSession(err.config.myInterceptors_cookie);
         }
       }
       throw err;
@@ -437,13 +445,12 @@ export const unlock = async (
 export const getStatus = async () => {
   const session = await globalThis.luogu.authProvider.getSessions();
   if (session.length === 0) return UserStatus.SignedOut.toString();
-  const status = await globalThis.luogu.authProvider
-    .cookie()
-    .then(x => (x.uid !== 0 ? checkCookie(x) : false));
+  const cookie = await globalThis.luogu.authProvider.cookie();
+  const status = cookie.uid !== 0 ? await checkCookie(cookie) : false;
   if (status) {
     return UserStatus.SignedIn.toString();
   } else {
-    await invalidateSession();
+    await invalidateSession(cookie);
     return UserStatus.SignedOut.toString();
   }
 };

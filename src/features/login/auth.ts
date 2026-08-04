@@ -150,9 +150,15 @@ export default class LuoguAuthProvider
       false
     );
   }
-  async invalidateSession(): Promise<boolean> {
+  async invalidateSession(expectedCookie?: Cookie): Promise<boolean> {
     await this.cacheLock;
     if (!this.status) return false;
+    if (
+      expectedCookie &&
+      (+this.cache.account.id !== expectedCookie.uid ||
+        this.cache.accessToken !== expectedCookie.clientID)
+    )
+      return false;
 
     const removed = this.cache;
     // The client ID can still be used by an anonymous session. Reusing it
