@@ -1,7 +1,7 @@
 const { default: React, useEffect, useState } = await import('react');
 const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
-const { faChevronDown, faBook, faPaperPlane } = await import(
+const { faChevronDown, faBook } = await import(
   '@fortawesome/free-solid-svg-icons'
 );
 const { ProblemDifficultyTag } = await import('@w/components');
@@ -17,6 +17,7 @@ import CphIcon from './cphIcon';
 import ContestProblemNavigation from './contestProblemNavigation';
 import '@w/common.css';
 import './app.css';
+import SubmissionControls from './submissionControls';
 import { VSCodeDropdown, VSCodeOption } from '@vscode/webview-ui-toolkit/react';
 
 function formatTimeLimit(timeLimit: number[]) {
@@ -99,14 +100,7 @@ export default function Problem({
                 </div>
               </VSCodeButton>
             )}
-            <VSCodeButton
-              onClick={() => send('submitProblem', undefined)}
-              appearance="primary"
-            >
-              <div>
-                <FontAwesomeIcon icon={faPaperPlane} /> 提交代码
-              </div>
-            </VSCodeButton>
+            <SubmissionControls key={data.problem.pid} />
             {data.problem.type !== 'T' &&
               data.problem.type !== 'U' &&
               !data.contest && (

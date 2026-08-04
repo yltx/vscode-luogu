@@ -39,7 +39,8 @@ const requestValidators = {
   clearLoginCookie: isVoid,
   checkCph: isVoid,
   jumpToCph: isVoid,
-  submitProblem: isVoid,
+  submitProblem: (data: unknown) => hasShape(data, { language: isString }),
+  getSubmissionContext: isVoid,
   getSolutionDetails: (data: unknown) => hasShape(data, { index: isInteger }),
   voteArticle: (data: unknown) =>
     hasShape(data, {
