@@ -11,6 +11,7 @@ import {
 
 import './submissionControls.css';
 import type { ProblemSubmissionContext } from './submissionTypes';
+import { resolveDisplayedSubmissionLanguage } from './submissionTypes';
 
 export default function SubmissionControls() {
   const [submissionContext, setSubmissionContext] =
@@ -34,10 +35,8 @@ export default function SubmissionControls() {
   }, []);
 
   useEffect(() => {
-    setSubmissionLanguage(
-      submissionContext.defaultLanguage ??
-        submissionContext.languages[0]?.label ??
-        ''
+    setSubmissionLanguage(currentLanguage =>
+      resolveDisplayedSubmissionLanguage(submissionContext, currentLanguage)
     );
   }, [submissionContext]);
 

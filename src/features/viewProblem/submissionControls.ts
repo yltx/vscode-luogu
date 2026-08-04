@@ -12,10 +12,12 @@ export const createSubmissionControls = (
 ) => {
   let selectedDocument = vscode.window.activeTextEditor?.document;
 
-  const postSubmissionContext = () =>
+  const postSubmissionContext = (
+    context = getSubmissionContext(selectedDocument, data.lastLanguage)
+  ) =>
     panel.webview.postMessage({
       type: 'submissionContextChanged',
-      data: getSubmissionContext(selectedDocument, data.lastLanguage)
+      data: context
     });
   const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(
     editor => {
@@ -41,24 +43,35 @@ export const createSubmissionControls = (
           pid: data.problem.pid,
           cid: data.contest?.id
         };
-        const submissionContext = getSubmissionContext(
-          selectedDocument,
-          data.lastLanguage
-        );
-        const selectedLanguage = submissionContext.languages.find(
-          option => option.label === language
-        );
-        if (!selectedLanguage)
-          return vscode.commands.executeCommand<boolean>(
-            'luogu.sumbitCode',
-            problem
-          );
         let submissionDocument = selectedDocument;
         if (!submissionDocument || submissionDocument.isClosed) {
           const selectedEditor = await selectOpenDocument();
           if (!selectedEditor) return false;
           submissionDocument = selectedEditor.document;
         }
+        const submissionContext = getSubmissionContext(
+          submissionDocument,
+          data.lastLanguage
+        );
+        const selectedLanguage =
+          submissionContext.languages.find(
+            option => option.label === language
+          ) ??
+          submissionContext.languages.find(
+            option => option.label === submissionContext.defaultLanguage
+          ) ??
+          submissionContext.languages[0];
+        if (!selectedLanguage)
+          return vscode.commands.executeCommand<boolean>(
+            'luogu.sumbitCode',
+            problem
+          );
+
+        selectedDocument = submissionDocument;
+        void postSubmissionContext({
+          ...submissionContext,
+          defaultLanguage: selectedLanguage.label
+        });
         return submitDocument(problem, submissionDocument, selectedLanguage);
       }
     },
