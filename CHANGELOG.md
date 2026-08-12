@@ -1,5 +1,17 @@
 # Change Log
 
+## 4.16.0
+
+- Add:
+  1. 支持在比赛题目页面中直接切换上一题、下一题和指定题目，并保持同一面板展示
+  2. 支持洛谷新版 Markdown 扩展语法，包括 Tuack 表格、引言、代码行增强和提示块
+- Fix:
+  1. 串行化比赛题目切换及历史记录写入，避免快速操作造成题目、标题和最近浏览状态不一致
+  2. 保持新版 Markdown 样式兼容最低支持的 VS Code 1.75
+- Engineering:
+  1. 更新 lodash、underscore、flatted 和 brace-expansion 等依赖
+  2. 增加比赛题目切换的并发与失败路径回归测试
+
 ## 4.15.0 (Pre-release)
 
 - Security:
