@@ -7,6 +7,7 @@ import useWebviewResponseHandle from '@/utils/webviewResponse';
 import { checkCPH, sendCphMessage } from './cph';
 import jumpToCphEventEmitter from './jumpToCphEventEmitter';
 import { tagManager } from '@/utils/tagManager';
+import { createSubmissionControls } from './submissionControls';
 
 export default async function showProblemWebview(data: ProblemData) {
   const panel = vscode.window.createWebviewPanel(
@@ -20,20 +21,20 @@ export default async function showProblemWebview(data: ProblemData) {
       enableCommandUris: ['luogu.solution']
     }
   );
+  const submissionControls = createSubmissionControls(panel, data);
   useWebviewResponseHandle(panel.webview, {
     ...createContestProblemNavigationHandlers(panel, data),
     checkCph: checkCPH,
     jumpToCph: () => sendCphMessage(data),
-    submitProblem: () =>
-      vscode.commands.executeCommand<boolean>('luogu.sumbitCode', {
-        pid: data.problem.pid,
-        cid: data.contest?.id
-      })
+    ...submissionControls.handlers
   });
   const jumpToCphListener = jumpToCphEventEmitter.event(() => {
     if (panel.active) sendCphMessage(data);
   });
-  panel.onDidDispose(() => jumpToCphListener.dispose());
+  panel.onDidDispose(() => {
+    jumpToCphListener.dispose();
+    submissionControls.dispose();
+  });
   const tagsArray = Array.from((await tagManager.getAllTags()).values());
   panel.webview.html = getReactWebviewHtml(
     panel.webview,

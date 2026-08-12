@@ -80,8 +80,14 @@ type JumpToCphMessageType = WebviewMessage<
   WebviewResponseMessage<void>
 >;
 type SubmitProblemMessageType = WebviewMessage<
-  WebviewRequestMessage<'submitProblem', void>,
+  WebviewRequestMessage<'submitProblem', { language: string }>,
   WebviewResponseMessage<boolean>
+>;
+type GetSubmissionContextMessageType = WebviewMessage<
+  WebviewRequestMessage<'getSubmissionContext', void>,
+  WebviewResponseMessage<
+    import('./views/viewProblem/submissionTypes').ProblemSubmissionContext
+  >
 >;
 type GetSolutionDetailsMessageType = WebviewMessage<
   WebviewRequestMessage<'getSolutionDetails', { index: number }>,
@@ -142,6 +148,7 @@ type MessageTypes = MessageTypesBase<
     checkCphMessageType,
     JumpToCphMessageType,
     SubmitProblemMessageType,
+    GetSubmissionContextMessageType,
     GetSolutionDetailsMessageType,
     VoteArticleMessageType,
     GetContestProblemNavigationMessageType,
