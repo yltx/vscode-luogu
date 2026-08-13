@@ -1,15 +1,22 @@
-import { describe, it, expect, vi } from 'vitest';
+import { AxiosError } from 'axios';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('vscode', () => ({ default: {} }));
+const needLogin = vi.fn();
+vi.mock('./uiUtils', () => ({ needLogin }));
+
+const invalidateSession = vi.fn(() => Promise.resolve(true));
+const requestCookie = { uid: 1, clientID: 'request-client' };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).luogu = {
   waitinit: Promise.resolve(),
   version: '0.0.0-test',
   authProvider: {
-    cookie: () => Promise.resolve({ uid: 0, clientID: 'test-client' }),
+    cookie: () => Promise.resolve(requestCookie),
     getSessions: () => Promise.resolve([]),
     removeSession: () => {},
+    invalidateSession,
     onDidChangeSessions: () => ({ dispose: () => {} })
   }
 };
@@ -22,6 +29,44 @@ const {
   CSRF_TOKEN_REGEX,
   axios
 } = await import('./api');
+
+describe('unauthenticated responses', () => {
+  beforeEach(() => {
+    invalidateSession.mockClear().mockResolvedValue(true);
+    needLogin.mockClear();
+  });
+
+  it('recognizes a redirect marker nested in the Axios cause chain', async () => {
+    axios.defaults.adapter = async config => {
+      const marker = new Error('LUOGU_UNAUTHENTICATED_REDIRECT');
+      const redirectError = new Error('Redirected request failed', {
+        cause: marker
+      });
+      throw AxiosError.from(redirectError, undefined, config);
+    };
+
+    await expect(axios.get('/redirected')).rejects.toThrow('未登录');
+    expect(invalidateSession).toHaveBeenCalledWith(requestCookie);
+    expect(needLogin).toHaveBeenCalledOnce();
+  });
+
+  it('does not prompt for login when a stale request did not invalidate the current session', async () => {
+    invalidateSession.mockResolvedValueOnce(false);
+    axios.defaults.adapter = async config => {
+      throw new AxiosError('Unauthorized', undefined, config, undefined, {
+        data: {},
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: {},
+        config
+      });
+    };
+
+    await expect(axios.get('/stale-request')).rejects.toThrow('未登录');
+    expect(invalidateSession).toHaveBeenCalledWith(requestCookie);
+    expect(needLogin).not.toHaveBeenCalled();
+  });
+});
 
 describe('CSRF_TOKEN_REGEX', () => {
   it('extracts CSRF token from meta tag', () => {

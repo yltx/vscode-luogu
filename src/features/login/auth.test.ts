@@ -112,4 +112,52 @@ describe('LuoguAuthProvider', () => {
       'network unavailable'
     );
   });
+
+  it('does not invalidate a newer session for an older request cookie', async () => {
+    const storage = new FakeSecretStorage(
+      JSON.stringify({
+        id: 'new-session',
+        accessToken: 'new-client',
+        account: { id: '2', label: 'New user' },
+        scopes: []
+      })
+    );
+    const provider = new LuoguAuthProvider(storage as never);
+    await provider.getSessions();
+
+    await expect(
+      provider.invalidateSession({ uid: 1, clientID: 'old-client' })
+    ).resolves.toBe(false);
+
+    await expect(provider.cookie()).resolves.toEqual({
+      uid: 2,
+      clientID: 'new-client'
+    });
+    await expect(provider.getSessions()).resolves.toHaveLength(1);
+    await expect(storage.get('luogu-auth')).resolves.toBeDefined();
+  });
+
+  it('invalidates the session matching the request cookie', async () => {
+    const storage = new FakeSecretStorage(
+      JSON.stringify({
+        id: 'current-session',
+        accessToken: 'current-client',
+        account: { id: '1', label: 'Current user' },
+        scopes: []
+      })
+    );
+    const provider = new LuoguAuthProvider(storage as never);
+    await provider.getSessions();
+
+    await expect(
+      provider.invalidateSession({ uid: 1, clientID: 'current-client' })
+    ).resolves.toBe(true);
+
+    await expect(provider.getSessions()).resolves.toEqual([]);
+    await expect(provider.cookie()).resolves.toEqual({
+      uid: 0,
+      clientID: 'current-client'
+    });
+    await expect(storage.get('luogu-auth')).resolves.toBeUndefined();
+  });
 });
