@@ -94,6 +94,54 @@
   margin-bottom: 0;
 }
 
+.luogu-directive-fallback {
+  --luogu-directive-color: var(--vscode-editorWarning-foreground, #d29922);
+  --luogu-directive-background: var(
+    --vscode-inputValidation-warningBackground,
+    transparent
+  );
+  border: 1px solid
+    var(--vscode-inputValidation-warningBorder, var(--luogu-directive-color));
+  border-left: 4px solid var(--luogu-directive-color);
+  border-radius: 4px;
+  background: var(--luogu-directive-background);
+}
+
+.luogu-directive-fallback-block {
+  display: block;
+  margin: 1em 0;
+  padding: 0.75em 1em;
+}
+
+.luogu-directive-fallback-inline {
+  padding: 0.1em 0.35em;
+}
+
+.luogu-directive-fallback-label {
+  color: var(--luogu-directive-color);
+  font-weight: 600;
+}
+
+.luogu-directive-fallback-block > .luogu-directive-fallback-label {
+  margin-bottom: 0.5em;
+}
+
+.luogu-directive-fallback-inline > .luogu-directive-fallback-label {
+  margin-right: 0.35em;
+}
+
+.luogu-directive-fallback-block > :last-child {
+  margin-bottom: 0;
+}
+
+.luogu-directive-fallback-anti-ai {
+  --luogu-directive-color: var(--vscode-editorError-foreground, #f85149);
+  --luogu-directive-background: var(
+    --vscode-inputValidation-errorBackground,
+    transparent
+  );
+}
+
 .luogu-cute-table-tuack th,
 .luogu-cute-table-tuack td {
   text-align: center;

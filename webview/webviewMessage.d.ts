@@ -132,6 +132,14 @@ type ContestMonitorStop = WebviewMessage<
   WebviewRequestMessage<'ContestMonitorStop', void>,
   WebviewResponseMessage<boolean>
 >;
+type QueryDownloadableTestcaseMessageType = WebviewMessage<
+  WebviewRequestMessage<'QueryDownloadableTestcase', void>,
+  WebviewResponseMessage<number | null>
+>;
+type DownloadTestcaseMessageType = WebviewMessage<
+  WebviewRequestMessage<'DownloadTestcase', { testcaseId: number }>,
+  WebviewResponseMessage<boolean>
+>;
 type MessageTypes = MessageTypesBase<
   // Add new types in this array.
   [
@@ -158,7 +166,9 @@ type MessageTypes = MessageTypesBase<
     ContestJoin,
     ContestEnterContestMode,
     ContestMonitorGet,
-    ContestMonitorStop
+    ContestMonitorStop,
+    QueryDownloadableTestcaseMessageType,
+    DownloadTestcaseMessageType
   ]
 >;
 export default MessageTypes;

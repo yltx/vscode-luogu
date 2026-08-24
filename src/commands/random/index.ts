@@ -6,6 +6,11 @@ import {
   getSelectedProblemset
 } from '@/utils/workspaceUtils';
 import axios from 'axios';
+import {
+  getRandomProblemPage,
+  parseProblemListResponse,
+  selectRandomProblem
+} from './randomProblem';
 
 export default new SuperCommand({
   onCommand: 'random',
@@ -59,24 +64,18 @@ export default new SuperCommand({
           `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=1&_contentOnly=1`
         )
         .then(res => res.data);
-      if (firstPage.code !== 200)
-        throw new Error(firstPage.currentData.errorMessage);
-
-      const problemCount = firstPage.currentData.problems.count;
-      const pageCount = Math.ceil(problemCount / 50);
-      const randPage = Math.floor(Math.random() * pageCount) + 1;
+      const problemCount = parseProblemListResponse(firstPage).count;
+      const randPage = getRandomProblemPage(problemCount);
       const page = await axios
         .get(
           `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=${randPage}&_contentOnly=1`
         )
         .then(res => res.data);
-      if (page.code !== 200) throw new Error(page.currentData.errorMessage);
-
-      const randNum = Math.floor(
-        Math.random() * Math.min(problemCount - 50 * (randPage - 1), 50)
+      const problem = selectRandomProblem(
+        parseProblemListResponse(page).result
       );
       await vscode.commands.executeCommand('luogu.searchProblem', {
-        pid: page.currentData.problems.result[randNum].pid
+        pid: problem.pid
       });
       return true;
     } catch (err) {

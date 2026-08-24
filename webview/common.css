@@ -42,6 +42,9 @@ pre > code {
   display: block;
   overflow-x: auto;
 }
+:not(pre) > code {
+  font-family: var(--vscode-editor-font-family, monospace);
+}
 pre[is='copyable-pre'] {
   min-height: 16px;
   min-width: 16px;

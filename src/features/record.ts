@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
-import { fetchRecords, fetchResult } from '@/utils/api';
+import {
+  downloadTestcase,
+  fetchRecords,
+  fetchResult,
+  queryDownloadableTestcase
+} from '@/utils/api';
 import { getReactWebviewHtml } from '@/utils/html';
 import { createWebsocket, WebsocketSchema } from '@/utils/websocket';
 import {
@@ -9,6 +14,8 @@ import {
 import { RecordData } from 'luogu-api';
 import { MessageTypes } from '@w/views/record/data';
 import { getLatestRecordId } from './recordList';
+import useWebviewResponseHandle from '@/utils/webviewResponse';
+import { saveDownloadedTestcase } from './recordTestcaseDownload';
 
 type RecordWebsocket = Awaited<
   ReturnType<typeof createWebsocket<WebsocketSchema.RecordTrack>>
@@ -31,6 +38,17 @@ async function record(record: RecordData) {
   );
   panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-record.js', {
     'lentille-context': record satisfies RecordData
+  });
+  useWebviewResponseHandle(panel.webview, {
+    QueryDownloadableTestcase: () =>
+      queryDownloadableTestcase(record.record.id),
+    DownloadTestcase: async ({ testcaseId }) => {
+      const downloadable = await queryDownloadableTestcase(record.record.id);
+      if (downloadable !== testcaseId)
+        throw new Error('该测试点已不可下载，请刷新记录后重试');
+      const testcase = await downloadTestcase(record.record.id, testcaseId);
+      return saveDownloadedTestcase(record.record.id, testcaseId, testcase);
+    }
   });
   if (record.record.status === 0 || record.record.status === 1)
     connectWebsocket(record.record.id, panel);

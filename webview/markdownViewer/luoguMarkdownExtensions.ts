@@ -17,6 +17,12 @@ const defaultCalloutTitles: Record<(typeof calloutNames)[number], string> = {
   error: '错误'
 };
 
+const directiveNodeTypes = [
+  'containerDirective',
+  'leafDirective',
+  'textDirective'
+] as const;
+
 function addMdastClass(node: MdastNode, ...classNames: string[]) {
   const data = (node.data ??= {});
   const properties = ((data.hProperties as Record<string, unknown>) ??= {});
@@ -35,10 +41,47 @@ function isDirectiveLabel(node: MdastNode | undefined) {
   return node?.type === 'paragraph' && node.data?.directiveLabel === true;
 }
 
-function transformDirective(node: MdastNode) {
-  if (node.type !== 'containerDirective') return;
+function transformUnknownDirective(node: MdastNode) {
+  const isAntiAi = node.name === 'anti-ai';
+  const isInline = node.type === 'textDirective';
+  const label = isAntiAi
+    ? 'AI 使用限制（anti-ai 指令）'
+    : `未知 Markdown 指令（${node.name ?? '未命名'}）`;
 
-  if (node.name === 'align') {
+  (node.data ??= {}).hName = isInline ? 'span' : 'aside';
+  addMdastClass(
+    node,
+    'luogu-directive-fallback',
+    isInline
+      ? 'luogu-directive-fallback-inline'
+      : 'luogu-directive-fallback-block',
+    ...(isAntiAi ? ['luogu-directive-fallback-anti-ai'] : [])
+  );
+  const properties = ((node.data ??= {}).hProperties ??= {}) as Record<
+    string,
+    unknown
+  >;
+  properties.role = isAntiAi ? 'alert' : 'note';
+
+  (node.children ??= []).unshift({
+    type: 'text',
+    value: `${label}：`,
+    data: {
+      hName: isInline ? 'span' : 'div',
+      hProperties: { className: ['luogu-directive-fallback-label'] }
+    }
+  });
+}
+
+function transformDirective(node: MdastNode) {
+  if (
+    !directiveNodeTypes.includes(
+      node.type as (typeof directiveNodeTypes)[number]
+    )
+  )
+    return;
+
+  if (node.type === 'containerDirective' && node.name === 'align') {
     const alignment = Object.hasOwn(node.attributes ?? {}, 'right')
       ? 'right'
       : 'center';
@@ -47,7 +90,7 @@ function transformDirective(node: MdastNode) {
     return;
   }
 
-  if (node.name === 'epigraph') {
+  if (node.type === 'containerDirective' && node.name === 'epigraph') {
     (node.data ??= {}).hName = 'blockquote';
     addMdastClass(node, 'luogu-epigraph');
     const label = node.children?.find(isDirectiveLabel);
@@ -60,8 +103,13 @@ function transformDirective(node: MdastNode) {
     return;
   }
 
-  if (!calloutNames.includes(node.name as (typeof calloutNames)[number]))
+  if (
+    node.type !== 'containerDirective' ||
+    !calloutNames.includes(node.name as (typeof calloutNames)[number])
+  ) {
+    transformUnknownDirective(node);
     return;
+  }
   const kind = node.name as (typeof calloutNames)[number];
   (node.data ??= {}).hName = 'details';
   addMdastClass(node, 'luogu-callout', `luogu-callout-${kind}`);

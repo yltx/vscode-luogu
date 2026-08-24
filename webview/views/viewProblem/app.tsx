@@ -15,6 +15,7 @@ import { ProblemData } from 'luogu-api';
 
 import CphIcon from './cphIcon';
 import ContestProblemNavigation from './contestProblemNavigation';
+import ProblemAttachments from './problemAttachments';
 import '@w/common.css';
 import './app.css';
 import SubmissionControls from './submissionControls';
@@ -215,6 +216,7 @@ export default function Problem({
             <Markdown>{problemContent.hint}</Markdown>
           </div>
         )}
+        <ProblemAttachments attachments={data.problem.attachments} />
       </div>
     </>
   );

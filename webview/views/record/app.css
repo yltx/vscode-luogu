@@ -85,3 +85,20 @@
     }
   }
 }
+
+.testcase-download,
+.testcase-download-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.testcase-download-status vscode-progress-ring {
+  width: 16px;
+  height: 16px;
+}
+
+.testcase-download-error {
+  color: var(--vscode-errorForeground);
+}

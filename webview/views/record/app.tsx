@@ -1,4 +1,7 @@
 const { default: React } = await import('react');
+const { VSCodeButton, VSCodeProgressRing } = await import(
+  '@vscode/webview-ui-toolkit/react'
+);
 import { SubtaskStatus, TestCaseStatus } from 'luogu-api';
 import useRecordStatus from './data';
 
@@ -7,6 +10,7 @@ const { ProblemNameWithDifficulty, Spinner } = await import('@w/components');
 const { RecordStatus, getScoreColor, LanguageString, vscodeLanguageId } =
   await import('@/utils/shared');
 const { default: Time } = await import('@w/components/time');
+const { default: send } = await import('@w/webviewRequest');
 await import('@w/copyablePreElement');
 
 import '@w/common.css';
@@ -113,6 +117,7 @@ export default function App() {
           </div>
         )}
       </div>
+      <TestcaseDownload />
       {record.status !== 0 && record.status !== -1 && record.status !== 2 && (
         <>
           <hr />
@@ -139,6 +144,60 @@ export default function App() {
         </>
       )}
     </>
+  );
+}
+
+function TestcaseDownload() {
+  const [testcaseId, setTestcaseId] = React.useState<number | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [downloading, setDownloading] = React.useState(false);
+  const [error, setError] = React.useState<string>();
+
+  React.useEffect(() => {
+    let active = true;
+    send('QueryDownloadableTestcase', undefined)
+      .then(id => active && setTestcaseId(id))
+      .catch(error => active && setError(error.message))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading)
+    return (
+      <div className="testcase-download-status">
+        <VSCodeProgressRing /> 正在查询可下载测试点
+      </div>
+    );
+  if (error)
+    return (
+      <div className="testcase-download-error">查询测试点失败：{error}</div>
+    );
+  if (testcaseId === null) return null;
+
+  return (
+    <div className="testcase-download">
+      <span>测试点 #{testcaseId} 可下载</span>
+      <VSCodeButton
+        appearance="secondary"
+        disabled={downloading}
+        onClick={async () => {
+          setDownloading(true);
+          setError(undefined);
+          try {
+            await send('DownloadTestcase', { testcaseId });
+          } catch (error) {
+            setError(error instanceof Error ? error.message : String(error));
+          } finally {
+            setDownloading(false);
+          }
+        }}
+      >
+        {downloading ? '正在下载...' : '下载输入与输出'}
+      </VSCodeButton>
+      {error && <span className="testcase-download-error">{error}</span>}
+    </div>
   );
 }
 

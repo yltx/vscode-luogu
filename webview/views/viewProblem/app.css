@@ -110,4 +110,24 @@
       }
     }
   }
+  section.problemAttachments {
+    > ul {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      > li {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        overflow-wrap: anywhere;
+        > .attachmentSize {
+          color: var(--vscode-descriptionForeground);
+          white-space: nowrap;
+        }
+      }
+    }
+  }
 }

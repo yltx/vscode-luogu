@@ -84,6 +84,10 @@ export namespace API {
   export const CSRF_TOKEN = `/ranking`;
   export const CLIENT_ID = `/auth/login`;
   export const AUTH_CSRF_TOKEN = `/auth/login`;
+  export const QUERY_DOWNLOADABLE_TESTCASE = (rid: number) =>
+    `/fe/api/record/queryDownloadableTestcase/${rid}`;
+  export const DOWNLOAD_TESTCASE = (rid: number) =>
+    `/fe/api/record/downloadTestcase/${rid}`;
 }
 
 declare module 'axios' {
@@ -463,6 +467,51 @@ export const fetchResult = async (rid: number) =>
       } else {
         throw err;
       }
+    });
+
+export type DownloadedTestcase = {
+  input: string;
+  output: string;
+};
+
+export const queryDownloadableTestcase = async (rid: number) =>
+  axios.get<unknown>(API.QUERY_DOWNLOADABLE_TESTCASE(rid)).then(({ data }) => {
+    const testcaseId =
+      typeof data === 'object' && data !== null && 'testcaseId' in data
+        ? data.testcaseId
+        : undefined;
+    if (
+      testcaseId !== null &&
+      (typeof testcaseId !== 'number' ||
+        !Number.isInteger(testcaseId) ||
+        testcaseId < 0)
+    )
+      throw new Error('洛谷返回了无效的可下载测试点信息');
+    return testcaseId;
+  });
+
+export const downloadTestcase = async (
+  rid: number,
+  testcaseId: number
+): Promise<DownloadedTestcase> =>
+  axios
+    .post<unknown>(API.DOWNLOAD_TESTCASE(rid), { testcaseId })
+    .then(({ data }) => {
+      if (
+        typeof data !== 'object' ||
+        data === null ||
+        !('status' in data) ||
+        data.status !== 200 ||
+        !('data' in data) ||
+        typeof data.data !== 'object' ||
+        data.data === null ||
+        !('input' in data.data) ||
+        typeof data.data.input !== 'string' ||
+        !('output' in data.data) ||
+        typeof data.data.output !== 'string'
+      )
+        throw new Error('洛谷返回了无效的测试点内容');
+      return { input: data.data.input, output: data.data.output };
     });
 
 export const fetch3kHomepage = async () =>

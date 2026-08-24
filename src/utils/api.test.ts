@@ -20,7 +20,9 @@ const {
   parseProblemID,
   resolveSubmissionProblem,
   CSRF_TOKEN_REGEX,
-  axios
+  axios,
+  queryDownloadableTestcase,
+  downloadTestcase
 } = await import('./api');
 
 describe('CSRF_TOKEN_REGEX', () => {
@@ -125,6 +127,96 @@ describe('API routes', () => {
     expect(API.VOTE_ARTICLE('abc')).toBe('/article/abc/vote');
     expect(API.JOIN_CONTEST(42)).toBe('/contest/42/join');
     expect(API.AUTH_CSRF_TOKEN).toBe('/auth/login');
+    expect(API.QUERY_DOWNLOADABLE_TESTCASE(123)).toBe(
+      '/fe/api/record/queryDownloadableTestcase/123'
+    );
+    expect(API.DOWNLOAD_TESTCASE(123)).toBe(
+      '/fe/api/record/downloadTestcase/123'
+    );
+  });
+});
+
+describe('record testcase downloads', () => {
+  it('queries the downloadable testcase ID', async () => {
+    axios.defaults.adapter = async config => ({
+      data: { testcaseId: 4 },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+
+    await expect(queryDownloadableTestcase(123)).resolves.toBe(4);
+  });
+
+  it('accepts a record without a downloadable testcase', async () => {
+    axios.defaults.adapter = async config => ({
+      data: { testcaseId: null },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+
+    await expect(queryDownloadableTestcase(123)).resolves.toBeNull();
+  });
+
+  it('rejects malformed availability responses', async () => {
+    axios.defaults.adapter = async config => ({
+      data: { testcaseId: '4' },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+
+    await expect(queryDownloadableTestcase(123)).rejects.toThrow(
+      '无效的可下载测试点信息'
+    );
+  });
+
+  it('downloads testcase input and output using the documented payload', async () => {
+    let requestData: unknown;
+    axios.defaults.adapter = async config => {
+      requestData = JSON.parse(config.data);
+      return {
+        data: { status: 200, data: { input: '1 2\n', output: '3\n' } },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config
+      };
+    };
+
+    await expect(downloadTestcase(123, 4)).resolves.toEqual({
+      input: '1 2\n',
+      output: '3\n'
+    });
+    expect(requestData).toEqual({ testcaseId: 4 });
+  });
+
+  it('rejects malformed testcase content', async () => {
+    axios.defaults.adapter = async config => ({
+      data: { status: 200, data: { input: '1 2\n' } },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+
+    await expect(downloadTestcase(123, 4)).rejects.toThrow('无效的测试点内容');
+  });
+
+  it('rejects non-success testcase response statuses', async () => {
+    axios.defaults.adapter = async config => ({
+      data: { status: 403, data: { input: 'hidden', output: 'hidden' } },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config
+    });
+
+    await expect(downloadTestcase(123, 4)).rejects.toThrow('无效的测试点内容');
   });
 });
 

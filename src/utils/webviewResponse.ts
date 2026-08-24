@@ -11,6 +11,8 @@ const isNumber = (value: unknown) =>
   typeof value === 'number' && Number.isFinite(value);
 const isInteger = (value: unknown) =>
   isNumber(value) && Number.isInteger(value);
+const isNonnegativeInteger = (value: unknown) =>
+  typeof value === 'number' && isInteger(value) && value >= 0;
 const isVoid = (value: unknown) => value === undefined;
 const hasShape = (value: unknown, shape: Readonly<Record<string, Validator>>) =>
   isRecord(value) &&
@@ -54,7 +56,10 @@ const requestValidators = {
   ContestJoin: isVoid,
   ContestEnterContestMode: isVoid,
   ContestMonitorGet: isVoid,
-  ContestMonitorStop: isVoid
+  ContestMonitorStop: isVoid,
+  QueryDownloadableTestcase: isVoid,
+  DownloadTestcase: (data: unknown) =>
+    hasShape(data, { testcaseId: isNonnegativeInteger })
 } satisfies Record<keyof MessageTypes, Validator>;
 
 const uuidPattern =
