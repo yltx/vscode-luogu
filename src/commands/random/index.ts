@@ -5,12 +5,8 @@ import {
   getSelectedDifficulty,
   getSelectedProblemset
 } from '@/utils/workspaceUtils';
-import axios from 'axios';
-import {
-  getRandomProblemPage,
-  parseProblemListResponse,
-  selectRandomProblem
-} from './randomProblem';
+import { getRandomProblemPage, selectRandomProblem } from './randomProblem';
+import { getProblemList } from '@/utils/api';
 
 export default new SuperCommand({
   onCommand: 'random',
@@ -59,32 +55,23 @@ export default new SuperCommand({
     if (userProblemset === undefined) return false;
 
     try {
-      const firstPage = await axios
-        .get(
-          `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=1&_contentOnly=1`
-        )
-        .then(res => res.data);
-      const problemCount = parseProblemListResponse(firstPage).count;
+      const filters = {
+        keyword: '',
+        type: userProblemset,
+        difficulty: userdifficulty,
+        tags: []
+      };
+      const firstPage = await getProblemList({ ...filters, page: 1 });
+      const problemCount = firstPage.count;
       const randPage = getRandomProblemPage(problemCount);
-      const page = await axios
-        .get(
-          `https://www.luogu.com.cn/problem/list?difficulty=${userdifficulty}&type=${userProblemset}&page=${randPage}&_contentOnly=1`
-        )
-        .then(res => res.data);
-      const problem = selectRandomProblem(
-        parseProblemListResponse(page).result
-      );
+      const page = await getProblemList({ ...filters, page: randPage });
+      const problem = selectRandomProblem(page.result);
       await vscode.commands.executeCommand('luogu.searchProblem', {
         pid: problem.pid
       });
       return true;
     } catch (err) {
-      const message = axios.isAxiosError(err)
-        ? err.response?.data?.errorMessage ||
-          (err.request ? '请求超时，请重试' : err.message)
-        : err instanceof Error
-          ? err.message
-          : '未知错误';
+      const message = err instanceof Error ? err.message : '未知错误';
       vscode.window.showErrorMessage(`随机题目时出现错误：${message}`);
       console.error('Error when fetching a random problem', err);
       return false;

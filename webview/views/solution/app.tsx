@@ -1,6 +1,6 @@
 const { default: React, useState, useEffect } = await import('react');
 const { VSCodeButton, VSCodeProgressRing } = await import(
-  '@vscode/webview-ui-toolkit/react'
+  '@w/components/uiToolkit'
 );
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
 const { faThumbsDown, faThumbsUp } = await import(

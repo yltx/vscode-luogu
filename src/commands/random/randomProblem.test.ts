@@ -1,46 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  getRandomProblemPage,
-  parseProblemListResponse,
-  selectRandomProblem
-} from './randomProblem';
+import { getRandomProblemPage, selectRandomProblem } from './randomProblem';
 
 const problems = {
   count: 2,
   result: [{ pid: 'P1000' }, { pid: 'P1001' }]
 };
-
-describe('parseProblemListResponse', () => {
-  it('reads current Lentille status/data responses', () => {
-    expect(
-      parseProblemListResponse({ status: 200, data: { problems } })
-    ).toEqual(problems);
-  });
-
-  it('keeps compatibility with legacy code/currentData responses', () => {
-    expect(
-      parseProblemListResponse({ code: 200, currentData: { problems } })
-    ).toEqual(problems);
-  });
-
-  it('reports API errors without assuming a response envelope', () => {
-    expect(() =>
-      parseProblemListResponse({
-        status: 403,
-        data: { errorMessage: '无权限' }
-      })
-    ).toThrow('无权限');
-    expect(() => parseProblemListResponse({ status: 500 })).toThrow(
-      '获取题目列表失败'
-    );
-  });
-
-  it('rejects successful responses without problem data safely', () => {
-    expect(() => parseProblemListResponse({ status: 200, data: {} })).toThrow(
-      '题目列表数据无效'
-    );
-  });
-});
 
 describe('getRandomProblemPage', () => {
   it('selects across every available page', () => {

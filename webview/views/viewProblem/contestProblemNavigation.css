@@ -7,7 +7,7 @@
   margin-bottom: 0.67em;
   border-bottom: 1px solid #7f7f7f7f;
 
-  > vscode-button {
+  > .vscode-button {
     min-width: 36px;
   }
 }

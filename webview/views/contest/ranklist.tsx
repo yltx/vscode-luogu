@@ -1,6 +1,6 @@
 const { default: React, useEffect, useState } = await import('react');
 const { VSCodeProgressRing, VSCodeButton, VSCodeCheckbox } = await import(
-  '@vscode/webview-ui-toolkit/react'
+  '@w/components/uiToolkit'
 );
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
 const { faRotateRight } = await import('@fortawesome/free-solid-svg-icons');

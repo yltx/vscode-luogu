@@ -54,7 +54,7 @@ pre[is='copyable-pre'] {
     top: 0;
     right: 0;
     visibility: hidden;
-    > vscode-button {
+    > .vscode-button {
       margin: 0;
       > .animate {
         animation: copyButtonSuccessAnimationBegin 1s;

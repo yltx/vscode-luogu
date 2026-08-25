@@ -1,5 +1,5 @@
 const { default: React, useEffect, useRef, useState } = await import('react');
-const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
+const { VSCodeButton } = await import('@w/components/uiToolkit');
 const { default: send } = await import('@w/webviewRequest');
 
 import type { ProblemData } from 'luogu-api';

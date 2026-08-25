@@ -58,7 +58,7 @@
   padding: 20px;
 }
 
-.cr-loading > vscode-progress-ring {
+.cr-loading > .vscode-progress-ring {
   display: inline-block;
   margin-top: 15px;
   margin-bottom: 15px;

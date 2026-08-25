@@ -16,7 +16,7 @@ import Ranklist from './ranklist';
 import { FormatScore } from './scoreUtils';
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
 const { faCheck } = await import('@fortawesome/free-solid-svg-icons');
-const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
+const { VSCodeButton } = await import('@w/components/uiToolkit');
 import type { ContestData } from 'luogu-api';
 const { default: ReloadButton } = await import('@w/components/reload');
 

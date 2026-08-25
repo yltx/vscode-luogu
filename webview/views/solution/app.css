@@ -140,7 +140,7 @@ body {
     grid-column: 1 / -1;
   }
 
-  .pageControl > vscode-button {
+  .pageControl > .vscode-button {
     flex: 1;
   }
 }

@@ -7,7 +7,7 @@ import {
   VSCodeButton,
   VSCodeDropdown,
   VSCodeOption
-} from '@vscode/webview-ui-toolkit/react';
+} from '@w/components/uiToolkit';
 
 import './submissionControls.css';
 import type { ProblemSubmissionContext } from './submissionTypes';

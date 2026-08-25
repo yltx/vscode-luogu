@@ -1,45 +1,5 @@
 type ProblemSummary = { pid: string };
 
-type ProblemList = {
-  count: number;
-  result: ProblemSummary[];
-};
-
-type ProblemListData = {
-  errorMessage?: string;
-  problems?: ProblemList;
-};
-
-type ProblemListResponse = {
-  status?: number;
-  code?: number;
-  data?: ProblemListData;
-  currentData?: ProblemListData;
-  errorMessage?: string;
-};
-
-export const parseProblemListResponse = (
-  response: ProblemListResponse
-): ProblemList => {
-  const status = response.status ?? response.code;
-  const data = response.data ?? response.currentData;
-
-  if (status !== 200) {
-    throw new Error(
-      data?.errorMessage ?? response.errorMessage ?? '获取题目列表失败'
-    );
-  }
-  if (
-    !data?.problems ||
-    !Number.isFinite(data.problems.count) ||
-    !Array.isArray(data.problems.result)
-  ) {
-    throw new Error('题目列表数据无效');
-  }
-
-  return data.problems;
-};
-
 export const getRandomProblemPage = (
   problemCount: number,
   random: () => number = Math.random

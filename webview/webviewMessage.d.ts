@@ -140,6 +140,17 @@ type DownloadTestcaseMessageType = WebviewMessage<
   WebviewRequestMessage<'DownloadTestcase', { testcaseId: number }>,
   WebviewResponseMessage<boolean>
 >;
+type ProblemListSearchMessageType = WebviewMessage<
+  WebviewRequestMessage<
+    'ProblemListSearch',
+    import('@/features/problemList/types').ProblemListFilters
+  >,
+  WebviewResponseMessage<import('@/features/problemList/types').ProblemList>
+>;
+type OpenProblemFromListMessageType = WebviewMessage<
+  WebviewRequestMessage<'OpenProblemFromList', { pid: string }>,
+  WebviewResponseMessage<void>
+>;
 type MessageTypes = MessageTypesBase<
   // Add new types in this array.
   [
@@ -168,7 +179,9 @@ type MessageTypes = MessageTypesBase<
     ContestMonitorGet,
     ContestMonitorStop,
     QueryDownloadableTestcaseMessageType,
-    DownloadTestcaseMessageType
+    DownloadTestcaseMessageType,
+    ProblemListSearchMessageType,
+    OpenProblemFromListMessageType
   ]
 >;
 export default MessageTypes;

@@ -1,6 +1,6 @@
 const { default: React, useState } = await import('react');
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
-const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
+const { VSCodeButton } = await import('@w/components/uiToolkit');
 const { createRoot } = await import('react-dom/client');
 const { faCopy } = await import('@fortawesome/free-solid-svg-icons');
 

@@ -24,6 +24,14 @@ import {
 import { askForCaptcha, cookieString, praseCookie } from './workspaceUtils';
 import { needLogin } from './uiUtils';
 import CsrfTokenManager from './csrfTokenManager';
+import type {
+  ProblemListFilters,
+  ProblemListResponse
+} from '@/features/problemList/types';
+import {
+  getProblemListParams,
+  parseProblemListResponse
+} from '@/features/problemList/problemListData';
 
 type EditableArticle = ArticleDetails & { content: string; top: number };
 let csrfTokenManager: CsrfTokenManager | undefined;
@@ -36,6 +44,7 @@ export namespace API {
   export const cookieDomain = 'luogu.com.cn';
   export const SEARCH_PROBLEM = (pid: string) =>
     `/problem/${pid}?_contentOnly=1`;
+  export const PROBLEM_LIST = `/problem/list`;
   export const SEARCH_CONTESTPROBLEM = (pid: string, cid: string) =>
     `/problem/${pid}?contestId=${cid}&_contentOnly=1`;
   export const SEARCH_SOLUTION = (pid: string, page: number) =>
@@ -257,6 +266,13 @@ export const getProblemData = async (pid: string, cid?: number) =>
     .then(x => {
       return x.data.data;
     });
+
+export const getProblemList = async (filters: ProblemListFilters) =>
+  axios
+    .get<ProblemListResponse>(API.PROBLEM_LIST, {
+      params: getProblemListParams(filters)
+    })
+    .then(response => parseProblemListResponse(response.data));
 
 export const parseContestDataResponse = <T>(response: {
   data?: T;

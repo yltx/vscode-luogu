@@ -8,6 +8,7 @@ import random from './random';
 import paintboard from './paintboard';
 import traininglist from './traininglist';
 import traindetails from './traindetails';
+import problemList from './problemlist';
 const commands = [
   About,
   userInfo,
@@ -15,7 +16,8 @@ const commands = [
   random,
   paintboard,
   traininglist,
-  traindetails
+  traindetails,
+  problemList
 ];
 export { commands };
 

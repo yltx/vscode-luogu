@@ -1,7 +1,7 @@
 const { default: React } = await import('react');
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
 const { faRotateRight } = await import('@fortawesome/free-solid-svg-icons');
-const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
+const { VSCodeButton } = await import('@w/components/uiToolkit');
 
 import './reload.css';
 

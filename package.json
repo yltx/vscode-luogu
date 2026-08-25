@@ -97,6 +97,11 @@
         "category": "Luogu"
       },
       {
+        "command": "luogu.problemList",
+        "title": "浏览题库(Browse problem list)",
+        "category": "Luogu"
+      },
+      {
         "command": "luogu.paintboard",
         "title": "查看冬日绘板(Show paintboard)",
         "category": "Luogu"
@@ -611,7 +616,6 @@
     "@typescript-eslint/parser": "^7.3.1",
     "@vitest/coverage-v8": "^4.1.7",
     "@vscode/vsce": "^3.6.2",
-    "@vscode/webview-ui-toolkit": "^1.2.2",
     "css-loader": "^6.11.0",
     "del-cli": "^5.1.0",
     "eslint": "^8.50.0",

@@ -1,6 +1,6 @@
 const { default: React } = await import('react');
 const { VSCodeButton, VSCodeProgressRing } = await import(
-  '@vscode/webview-ui-toolkit/react'
+  '@w/components/uiToolkit'
 );
 import { SubtaskStatus, TestCaseStatus } from 'luogu-api';
 import useRecordStatus from './data';

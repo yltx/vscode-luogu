@@ -11,9 +11,15 @@ const isNumber = (value: unknown) =>
   typeof value === 'number' && Number.isFinite(value);
 const isInteger = (value: unknown) =>
   isNumber(value) && Number.isInteger(value);
-const isNonnegativeInteger = (value: unknown) =>
+const isNonnegativeInteger = (value: unknown): value is number =>
   typeof value === 'number' && isInteger(value) && value >= 0;
+const isPositiveInteger = (value: unknown) =>
+  isNonnegativeInteger(value) && value > 0;
 const isVoid = (value: unknown) => value === undefined;
+const isNullableDifficulty = (value: unknown) =>
+  value === null || (isNonnegativeInteger(value) && value <= 8);
+const isIntegerArray = (value: unknown) =>
+  Array.isArray(value) && value.every(isNonnegativeInteger);
 const hasShape = (value: unknown, shape: Readonly<Record<string, Validator>>) =>
   isRecord(value) &&
   Object.entries(shape).every(([key, validate]) => validate(value[key]));
@@ -59,7 +65,16 @@ const requestValidators = {
   ContestMonitorStop: isVoid,
   QueryDownloadableTestcase: isVoid,
   DownloadTestcase: (data: unknown) =>
-    hasShape(data, { testcaseId: isNonnegativeInteger })
+    hasShape(data, { testcaseId: isNonnegativeInteger }),
+  ProblemListSearch: (data: unknown) =>
+    hasShape(data, {
+      page: isPositiveInteger,
+      keyword: isString,
+      type: isString,
+      difficulty: isNullableDifficulty,
+      tags: isIntegerArray
+    }),
+  OpenProblemFromList: (data: unknown) => hasShape(data, { pid: isString })
 } satisfies Record<keyof MessageTypes, Validator>;
 
 const uuidPattern =

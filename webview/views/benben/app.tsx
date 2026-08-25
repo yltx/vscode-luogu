@@ -2,7 +2,7 @@ import type BenbenData from '@/model/benben';
 
 const { default: React, useState, useRef, useEffect } = await import('react');
 const { VSCodeButton, VSCodeProgressRing, VSCodeTextArea } = await import(
-  '@vscode/webview-ui-toolkit/react'
+  '@w/components/uiToolkit'
 );
 const { sleep, UserIcon, UserName } = await import('@w/components');
 const { default: send } = await import('@w/webviewRequest');
@@ -43,7 +43,7 @@ function BenbenEditor({
         placeholder="有什么新鲜事告诉大家"
         resize="vertical"
         value={text}
-        onInput={e => SetText(e.target.value)}
+        onInput={e => SetText(e.currentTarget.value)}
         disabled={disabledState}
       />
       <VSCodeButton

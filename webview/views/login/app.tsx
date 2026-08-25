@@ -1,5 +1,5 @@
 const { VSCodeButton, VSCodeTextField } = await import(
-  '@vscode/webview-ui-toolkit/react'
+  '@w/components/uiToolkit'
 );
 const { default: send } = await import('@w/webviewRequest');
 const { default: React, useEffect, useState } = await import('react');
@@ -102,7 +102,7 @@ function PasswordLogin({ set2fa }: { set2fa: (data: boolean) => void }) {
             name="username"
             placeholder="用户名、用户 ID、手机号或电子邮箱"
             value={username}
-            onInput={e => setUsername(e.target.value)}
+            onInput={e => setUsername(e.currentTarget.value)}
           />
         </div>
       </div>
@@ -114,7 +114,7 @@ function PasswordLogin({ set2fa }: { set2fa: (data: boolean) => void }) {
             name="password"
             placeholder="密码"
             value={password}
-            onInput={e => setPassword(e.target.value)}
+            onInput={e => setPassword(e.currentTarget.value)}
             type="password"
           />
         </div>
@@ -127,7 +127,7 @@ function PasswordLogin({ set2fa }: { set2fa: (data: boolean) => void }) {
             name="captcha"
             placeholder="右侧图形验证码"
             value={captcha}
-            onInput={e => setCaptchaInput(e.target.value)}
+            onInput={e => setCaptchaInput(e.currentTarget.value)}
           />
           <a href="" onClick={() => changeCaptchaImage()}>
             <img src={captchaImage} alt="captcha" className="captcha" />
@@ -166,7 +166,7 @@ function CookieLogin() {
             name="uid"
             placeholder="Cookie 中 _uid 字段"
             value={uid}
-            onInput={e => setUID(e.target.value)}
+            onInput={e => setUID(e.currentTarget.value)}
           />
         </div>
       </div>
@@ -178,7 +178,7 @@ function CookieLogin() {
             name="clientID"
             placeholder="Cookie 中 __client_id 字段"
             value={clientID}
-            onInput={e => setClientID(e.target.value)}
+            onInput={e => setClientID(e.currentTarget.value)}
           />
         </div>
       </div>
@@ -246,7 +246,7 @@ function Check2fa({ set2fa }: { set2fa: (data: boolean) => void }) {
                 name="captcha"
                 placeholder="右侧图形验证码"
                 value={captcha}
-                onInput={e => setCaptchaInput(e.target.value)}
+                onInput={e => setCaptchaInput(e.currentTarget.value)}
               />
               <a href="" onClick={() => changeCaptchaImage()}>
                 <img src={captchaImage} alt="captcha" className="captcha" />
@@ -279,7 +279,7 @@ function Check2fa({ set2fa }: { set2fa: (data: boolean) => void }) {
               className="form-itemarea-input-textfield"
               name="code"
               value={code}
-              onInput={e => setCode(e.target.value)}
+              onInput={e => setCode(e.currentTarget.value)}
             />
           </div>
         </div>

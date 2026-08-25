@@ -94,7 +94,7 @@
   margin-top: 16px;
 }
 
-.testcase-download-status vscode-progress-ring {
+.testcase-download-status .vscode-progress-ring {
   width: 16px;
   height: 16px;
 }

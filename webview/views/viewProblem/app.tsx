@@ -1,5 +1,5 @@
 const { default: React, useEffect, useState } = await import('react');
-const { VSCodeButton } = await import('@vscode/webview-ui-toolkit/react');
+const { VSCodeButton } = await import('@w/components/uiToolkit');
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
 const { faChevronDown, faBook } = await import(
   '@fortawesome/free-solid-svg-icons'
@@ -19,7 +19,7 @@ import ProblemAttachments from './problemAttachments';
 import '@w/common.css';
 import './app.css';
 import SubmissionControls from './submissionControls';
-import { VSCodeDropdown, VSCodeOption } from '@vscode/webview-ui-toolkit/react';
+import { VSCodeDropdown, VSCodeOption } from '@w/components/uiToolkit';
 
 function formatTimeLimit(timeLimit: number[]) {
   const mintime = Math.min(...timeLimit),
@@ -106,13 +106,12 @@ export default function Problem({
               data.problem.type !== 'U' &&
               !data.contest && (
                 <a
+                  className="vscode-button vscode-button-primary solution-link"
                   href={`command:luogu.solution?${encodeURIComponent(JSON.stringify([data.problem.pid]))}`}
                 >
-                  <VSCodeButton appearance="primary">
-                    <div>
-                      <FontAwesomeIcon icon={faBook} /> 查看题解
-                    </div>
-                  </VSCodeButton>
+                  <span>
+                    <FontAwesomeIcon icon={faBook} /> 查看题解
+                  </span>
                 </a>
               )}
           </div>
