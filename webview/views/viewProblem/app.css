@@ -50,44 +50,47 @@
           font-weight: 700;
         }
       }
-      > div.haveTag {
-        > div:nth-child(2) > :first-child {
-          transition: transform 0.5s;
-        }
-        > div:nth-child(3) {
-          position: relative;
-          > div {
-            position: absolute;
-            top: 0;
-            right: -30px;
-            opacity: 0;
-            transition: opacity 0.5s;
-            backdrop-filter: blur(12px);
-            background-color: var(--vscode-editor-background);
-            box-shadow: 0 3px 8px var(--vscode-editor-foreground);
-            border-radius: 7px;
-            padding: 10px;
-            margin: 10px;
-            width: 200px;
-            z-index: 114514;
+      > details.problemTags {
+        grid-column: 1 / -1;
+        padding: 0;
+        > summary {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          cursor: pointer;
+          list-style: none;
+          > span {
+            padding: 6px 12px;
+            text-align: center;
+          }
+          > span:nth-child(2) {
+            font-weight: 700;
+            > :first-child {
+              transition: transform 0.2s;
+            }
           }
         }
+        > summary::-webkit-details-marker {
+          display: none;
+        }
+        > .problemTagList {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 4px;
+          padding: 8px 12px;
+          border-top: 1px solid var(--vscode-editor-foreground);
+          overflow-wrap: anywhere;
+        }
       }
-      > div.haveTag:hover {
-        > div:nth-child(2) > :first-child {
-          transform: rotate(180deg);
-        }
-        > div:nth-child(3) > div {
-          opacity: 1;
-        }
-      }
-      > div.haveTag:not(:hover) {
-        > div:nth-child(3) > div {
-          animation: fadeOut 0.5s;
-        }
+      > details.problemTags[open]
+        > summary
+        > span:nth-child(2)
+        > :first-child {
+        transform: rotate(180deg);
       }
       > div:nth-child(1),
-      > div:nth-child(2) {
+      > div:nth-child(2),
+      > details.problemTags > summary {
         border-bottom: 1px solid var(--vscode-editor-foreground);
       }
     }

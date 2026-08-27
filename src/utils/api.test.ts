@@ -21,6 +21,7 @@ const {
   resolveSubmissionProblem,
   CSRF_TOKEN_REGEX,
   axios,
+  sendMail2fa,
   queryDownloadableTestcase,
   downloadTestcase
 } = await import('./api');
@@ -65,6 +66,43 @@ describe('CSRF request interceptor', () => {
     expect(requests).toEqual([
       { url: API.CSRF_TOKEN, token: undefined },
       { url: '/test-mutation', token: '2000000000:test-token' }
+    ]);
+  });
+
+  it('uses the temporary 2FA session for both CSRF and mail requests', async () => {
+    const temporaryCookie = { uid: 42, clientID: 'temporary-client' };
+    const requests: { url?: string; cookie?: string; token?: unknown }[] = [];
+    axios.defaults.adapter = async config => {
+      requests.push({
+        url: config.url,
+        cookie: config.headers.get('cookie') as string | undefined,
+        token: config.headers.get('X-CSRF-Token')
+      });
+      return {
+        data:
+          config.url === API.AUTH_CSRF_TOKEN
+            ? '<meta name="csrf-token" content="temporary-token">'
+            : { ok: true },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config
+      };
+    };
+
+    await sendMail2fa('captcha', temporaryCookie);
+
+    expect(requests).toEqual([
+      {
+        url: API.AUTH_CSRF_TOKEN,
+        cookie: '_uid=42;__client_id=temporary-client',
+        token: undefined
+      },
+      {
+        url: API.SEND_MAIL_2FA,
+        cookie: '_uid=42;__client_id=temporary-client',
+        token: 'temporary-token'
+      }
     ]);
   });
 });

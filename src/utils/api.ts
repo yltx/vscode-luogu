@@ -465,6 +465,9 @@ export const sendMail2fa = async (captcha: string, cookie?: Cookie) =>
     API.SEND_MAIL_2FA,
     { captcha },
     {
+      headers: {
+        'X-CSRF-Token': await csrfToken(cookie, API.AUTH_CSRF_TOKEN)
+      },
       params: { endpoint: 1 },
       myInterceptors_cookie: cookie,
       myInterceptors_notCheckCookie: true
