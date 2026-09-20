@@ -11,8 +11,9 @@ const addSection = (
   content: string | null | undefined,
   required = false
 ) => {
-  if (!content && !required) return;
-  sections.push(`## ${title}`, content ? normalizeMarkdown(content) : '无');
+  const normalizedContent = content ? normalizeMarkdown(content) : '';
+  if (!normalizedContent && !required) return;
+  sections.push(`## ${title}`, normalizedContent || '无');
 };
 
 const getProblemContent = (data: ProblemData, locale: string) =>
@@ -42,8 +43,8 @@ export const buildProblemMarkdown = (data: ProblemData, locale: string) => {
   }
 
   addSection(sections, '说明/提示', content.hint);
-  return `${sections
+  return sections
     .filter(Boolean)
     .join('\n\n')
-    .replace(/^::anti-ai\[(.+)\]$/gm, '$1')}\n`;
+    .replace(/^::anti-ai\[(.+)\]$/gm, '$1');
 };
