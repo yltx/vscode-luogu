@@ -476,8 +476,12 @@ export const sendMail2fa = async (captcha: string, cookie?: Cookie) =>
 
 export const fetchResult = async (rid: number) =>
   axios
-    .get<DataResponse<RecordData>>(`/record/${rid}?_contentOnly=1`)
-    .then(data => data?.data.currentData)
+    .get<LentilleDataResponse<RecordData> | DataResponse<RecordData>>(
+      `/record/${rid}?_contentOnly=1`
+    )
+    .then(data =>
+      'data' in data.data ? data.data.data : data.data.currentData
+    )
     .catch(err => {
       if (err.response) {
         throw err.response.data;
@@ -570,9 +574,13 @@ export const getFate = async () =>
 export const fetchRecords = async () =>
   axios
     .get<
-      DataResponse<{ records: List<RecordBase> }>
+      | LentilleDataResponse<{ records: List<RecordBase> }>
+      | DataResponse<{ records: List<RecordBase> }>
     >(`/record/list?_contentOnly=1`, { params: { user: (await globalThis.luogu.authProvider.cookie()).uid } })
-    .then(data => data.data.currentData.records);
+    .then(
+      data =>
+        ('data' in data.data ? data.data.data : data.data.currentData).records
+    );
 
 export const searchUser = async (keyword: string, cookie?: Cookie) =>
   axios
