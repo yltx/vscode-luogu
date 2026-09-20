@@ -98,6 +98,39 @@
   > header.withContestNavigation {
     border-bottom: none;
   }
+  > .problemContent {
+    > .problemContentToolbar {
+      float: right;
+      display: flex;
+      margin: 0.2em 0 0.5em 1em;
+      > .problemMarkdownCopy {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 4px;
+        border: 0;
+        border-radius: 2px;
+        color: var(--vscode-textLink-foreground);
+        background: transparent;
+        font: inherit;
+        cursor: pointer;
+        > svg {
+          height: 1em;
+        }
+      }
+      > .problemMarkdownCopy:hover {
+        color: var(
+          --vscode-textLink-activeForeground,
+          var(--vscode-textLink-foreground)
+        );
+        text-decoration: underline;
+      }
+      > .problemMarkdownCopy:focus-visible {
+        outline: 1px solid var(--vscode-focusBorder);
+        outline-offset: 1px;
+      }
+    }
+  }
   div.problemSamples {
     > div {
       display: grid;

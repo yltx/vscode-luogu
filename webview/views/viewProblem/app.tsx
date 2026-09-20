@@ -1,7 +1,7 @@
 const { default: React, useEffect, useState } = await import('react');
 const { VSCodeButton } = await import('@w/components/uiToolkit');
 const { FontAwesomeIcon } = await import('@fortawesome/react-fontawesome');
-const { faChevronDown, faBook } = await import(
+const { faChevronDown, faBook, faCopy } = await import(
   '@fortawesome/free-solid-svg-icons'
 );
 const { ProblemDifficultyTag } = await import('@w/components');
@@ -153,7 +153,20 @@ export default function Problem({
         </div>
       </header>
       <ContestProblemNavigation data={data} onProblemChange={setData} />
-      <div>
+      <div className="problemContent">
+        <div className="problemContentToolbar">
+          <button
+            type="button"
+            className="problemMarkdownCopy"
+            onClick={() =>
+              send('copyProblemMarkdown', { locale: choosedLanguage })
+            }
+            title="复制当前显示语言的题面 Markdown"
+          >
+            <FontAwesomeIcon icon={faCopy} />
+            <span>复制 Markdown</span>
+          </button>
+        </div>
         {problemContent.background && (
           <div>
             <h2>题目背景</h2>
