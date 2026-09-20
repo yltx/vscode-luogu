@@ -79,6 +79,10 @@ type JumpToCphMessageType = WebviewMessage<
   WebviewRequestMessage<'jumpToCph', void>,
   WebviewResponseMessage<void>
 >;
+type CopyProblemMarkdownMessageType = WebviewMessage<
+  WebviewRequestMessage<'copyProblemMarkdown', { locale: string }>,
+  WebviewResponseMessage<void>
+>;
 type SubmitProblemMessageType = WebviewMessage<
   WebviewRequestMessage<'submitProblem', { language: string }>,
   WebviewResponseMessage<boolean>
@@ -166,6 +170,7 @@ type MessageTypes = MessageTypesBase<
     clearLoginCookieMessageType,
     checkCphMessageType,
     JumpToCphMessageType,
+    CopyProblemMarkdownMessageType,
     SubmitProblemMessageType,
     GetSubmissionContextMessageType,
     GetSolutionDetailsMessageType,
