@@ -5,8 +5,6 @@ import {
   ClientboundUpdateRecordStatusMessageData
 } from 'luogu-api';
 
-import send from '@w/webviewRequest';
-
 const { default: React } = await import('react');
 
 const context = JSON.parse(
@@ -109,9 +107,6 @@ export default function useRecordStatus() {
       }
     };
     window.addEventListener('message', onMessage);
-    void send('RecordReady', undefined).catch(error =>
-      console.error('启动评测记录更新失败', error)
-    );
     return () => window.removeEventListener('message', onMessage);
   }, []);
   return { ...context.record, ...recordStatus };

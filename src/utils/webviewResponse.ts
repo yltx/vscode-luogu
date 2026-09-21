@@ -65,7 +65,6 @@ const requestValidators = {
   ContestMonitorGet: isVoid,
   ContestMonitorStop: isVoid,
   QueryDownloadableTestcase: isVoid,
-  RecordReady: isVoid,
   DownloadTestcase: (data: unknown) =>
     hasShape(data, { testcaseId: isNonnegativeInteger }),
   ProblemListSearch: (data: unknown) =>

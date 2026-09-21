@@ -140,10 +140,6 @@ type QueryDownloadableTestcaseMessageType = WebviewMessage<
   WebviewRequestMessage<'QueryDownloadableTestcase', void>,
   WebviewResponseMessage<number | null>
 >;
-type RecordReadyMessageType = WebviewMessage<
-  WebviewRequestMessage<'RecordReady', void>,
-  WebviewResponseMessage<void>
->;
 type DownloadTestcaseMessageType = WebviewMessage<
   WebviewRequestMessage<'DownloadTestcase', { testcaseId: number }>,
   WebviewResponseMessage<boolean>
@@ -188,7 +184,6 @@ type MessageTypes = MessageTypesBase<
     ContestMonitorGet,
     ContestMonitorStop,
     QueryDownloadableTestcaseMessageType,
-    RecordReadyMessageType,
     DownloadTestcaseMessageType,
     ProblemListSearchMessageType,
     OpenProblemFromListMessageType
