@@ -36,9 +36,6 @@ async function record(record: RecordData) {
       ]
     }
   );
-  panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-record.js', {
-    'lentille-context': record satisfies RecordData
-  });
   useWebviewResponseHandle(panel.webview, {
     QueryDownloadableTestcase: () =>
       queryDownloadableTestcase(record.record.id),
@@ -49,6 +46,9 @@ async function record(record: RecordData) {
       const testcase = await downloadTestcase(record.record.id, testcaseId);
       return saveDownloadedTestcase(record.record.id, testcaseId, testcase);
     }
+  });
+  panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-record.js', {
+    'lentille-context': record satisfies RecordData
   });
   if (record.record.status === 0 || record.record.status === 1)
     connectWebsocket(record.record.id, panel);

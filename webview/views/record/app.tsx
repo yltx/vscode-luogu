@@ -3,7 +3,7 @@ const { VSCodeButton, VSCodeProgressRing } = await import(
   '@w/components/uiToolkit'
 );
 import { SubtaskStatus, TestCaseStatus } from 'luogu-api';
-import useRecordStatus from './data';
+import useRecordStatus, { getCompileResult, sortById } from './data';
 
 const { formatMemory, formatTime } = await import('@/utils/stringUtils');
 const { ProblemNameWithDifficulty, Spinner } = await import('@w/components');
@@ -18,6 +18,7 @@ import './app.css';
 
 export default function App() {
   const record = useRecordStatus();
+  const compileResult = getCompileResult(record.status, record.detail);
   console.log(record);
   return (
     <>
@@ -129,16 +130,14 @@ export default function App() {
           </div>
         </>
       )}
-      {record.detail.compileResult !== null && (
+      {compileResult !== null && (
         <>
           <hr />
           <div>
             <h2>编译信息</h2>
-            <p>
-              {record.detail.compileResult.success ? '编译成功' : '编译失败'}
-            </p>
-            {record.detail.compileResult.message !== null && (
-              <pre is="copyable-pre">{record.detail.compileResult.message}</pre>
+            <p>{compileResult.success ? '编译成功' : '编译失败'}</p>
+            {compileResult.message != null && (
+              <pre is="copyable-pre">{compileResult.message}</pre>
             )}
           </div>
         </>
@@ -208,12 +207,12 @@ function TestCaseWarp({
 }) {
   return (
     <div>
-      {Object.entries(data).map(([subtaskId, subtask]) => (
-        <div key={subtaskId}>
-          <h3>Subtask #{subtaskId}</h3>
+      {sortById(data).map(subtask => (
+        <div key={subtask.id}>
+          <h3>Subtask #{subtask.id}</h3>
           <div>
-            {Object.entries(subtask.testCases).map(([testcase, data]) => (
-              <TestCase key={testcase}>{data}</TestCase>
+            {sortById(subtask.testCases).map(testcase => (
+              <TestCase key={testcase.id}>{testcase}</TestCase>
             ))}
           </div>
         </div>
