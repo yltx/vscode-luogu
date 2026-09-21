@@ -47,6 +47,7 @@ const requestValidators = {
   clearLoginCookie: isVoid,
   checkCph: isVoid,
   jumpToCph: isVoid,
+  copyProblemMarkdown: (data: unknown) => hasShape(data, { locale: isString }),
   submitProblem: (data: unknown) => hasShape(data, { language: isString }),
   getSubmissionContext: isVoid,
   getSolutionDetails: (data: unknown) => hasShape(data, { index: isInteger }),

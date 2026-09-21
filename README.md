@@ -8,7 +8,6 @@
 
 > 在 issue 或者 QQ 群中提问 wiki 中有的内容，极有可能被无视或者攻击。
 
-
 ## 完成功能
 
 - 查看题目
@@ -57,3 +56,4 @@ Follow [MIT](LICENSE) LICENSE.
 - 品小呈
 - MrPython
 - Enigma_Soul
+- px-poxiao

@@ -151,7 +151,8 @@ export default function registerRecord(context: vscode.ExtensionContext) {
       if (typeof rid !== 'number') throw new TypeError('rid must be a number');
       fetchResult(rid)
         .then(record => {
-          if (!record.showStatus) record.record.status = -1;
+          if (record && record.showStatus === false && record.record)
+            record.record.status = -1;
           return record;
         })
         .then(record, processAxiosError('获取记录'));

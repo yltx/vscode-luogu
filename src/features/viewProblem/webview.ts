@@ -8,6 +8,7 @@ import { checkCPH, sendCphMessage } from './cph';
 import jumpToCphEventEmitter from './jumpToCphEventEmitter';
 import { tagManager } from '@/utils/tagManager';
 import { createSubmissionControls } from './submissionControls';
+import { buildProblemMarkdown } from './problemMarkdown';
 
 export default async function showProblemWebview(data: ProblemData) {
   const panel = vscode.window.createWebviewPanel(
@@ -26,6 +27,10 @@ export default async function showProblemWebview(data: ProblemData) {
     ...createContestProblemNavigationHandlers(panel, data),
     checkCph: checkCPH,
     jumpToCph: () => sendCphMessage(data),
+    copyProblemMarkdown: async ({ locale }) => {
+      await vscode.env.clipboard.writeText(buildProblemMarkdown(data, locale));
+      await vscode.window.showInformationMessage('题面 Markdown 已复制');
+    },
     ...submissionControls.handlers
   });
   const jumpToCphListener = jumpToCphEventEmitter.event(() => {

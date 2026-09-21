@@ -3,7 +3,7 @@
   "displayName": "vscode-luogu",
   "description": "Solve Luogu Problems in VSCode",
   "icon": "resources/img/luogu-normal.png",
-  "version": "4.17.1",
+  "version": "4.18.0",
   "license": "MIT",
   "publisher": "yltx",
   "engines": {
@@ -626,7 +626,7 @@
     "terser-webpack-plugin": "5.6.1",
     "ts-loader": "^9.5.1",
     "typescript": "^5.2.2",
-    "vitest": "^4.1.7",
+    "vitest": "^4.1.11",
     "webfont": "^11.2.26",
     "webpack": "5.108.4",
     "webpack-cli": "^5.1.4"
