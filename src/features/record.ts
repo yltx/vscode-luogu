@@ -36,10 +36,14 @@ async function record(record: RecordData) {
       ]
     }
   );
-  panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-record.js', {
-    'lentille-context': record satisfies RecordData
-  });
+  let trackingStarted = false;
   useWebviewResponseHandle(panel.webview, {
+    RecordReady: () => {
+      if (trackingStarted) return;
+      trackingStarted = true;
+      if (record.record.status === 0 || record.record.status === 1)
+        connectWebsocket(record.record.id, panel);
+    },
     QueryDownloadableTestcase: () =>
       queryDownloadableTestcase(record.record.id),
     DownloadTestcase: async ({ testcaseId }) => {
@@ -50,8 +54,9 @@ async function record(record: RecordData) {
       return saveDownloadedTestcase(record.record.id, testcaseId, testcase);
     }
   });
-  if (record.record.status === 0 || record.record.status === 1)
-    connectWebsocket(record.record.id, panel);
+  panel.webview.html = getReactWebviewHtml(panel.webview, 'webview-record.js', {
+    'lentille-context': record satisfies RecordData
+  });
 }
 
 function connectWebsocket(rid: number, panel: vscode.WebviewPanel) {
