@@ -61,6 +61,7 @@
             top: 0;
             right: -30px;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.5s;
             backdrop-filter: blur(12px);
             background-color: var(--vscode-editor-background);
