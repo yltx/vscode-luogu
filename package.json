@@ -637,7 +637,7 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.0",
     "@vscode/markdown-it-katex": "^1.0.3",
-    "axios": "1.18.1",
+    "axios": "1.20.0",
     "hast-util-from-html": "^2.0.2",
     "lg-markdown-processor": "github:Mr-Python-in-China/lg-markdown-processor",
     "markdown-it": "14.3.0",
