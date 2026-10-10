@@ -131,25 +131,25 @@ export default function Problem({
               <ProblemDifficultyTag difficulty={data.problem.difficulty || 0} />
             </div>
           </div>
-          <details className="problemTags">
-            <summary>
-              <span>题目标签</span>
-              <span>
-                {data.problem.tags.length ? (
-                  <FontAwesomeIcon icon={faChevronDown} />
-                ) : (
-                  '暂无标签'
-                )}
-              </span>
-            </summary>
+          <div className={data.problem.tags.length ? 'haveTag' : undefined}>
+            <div>题目标签</div>
+            <div>
+              {data.problem.tags.length ? (
+                <FontAwesomeIcon icon={faChevronDown} />
+              ) : (
+                '暂无标签'
+              )}
+            </div>
             {data.problem.tags.length ? (
-              <div className="problemTagList">
-                {data.problem.tags.map((x, i) => (
-                  <ProblemTag key={i} tag={x} />
-                ))}
+              <div>
+                <div>
+                  {data.problem.tags.map((x, i) => (
+                    <ProblemTag key={i} tag={x} />
+                  ))}
+                </div>
               </div>
             ) : undefined}
-          </details>
+          </div>
         </div>
       </header>
       <ContestProblemNavigation data={data} onProblemChange={setData} />

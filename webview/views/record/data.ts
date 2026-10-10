@@ -5,11 +5,18 @@ import {
   ClientboundUpdateRecordStatusMessageData
 } from 'luogu-api';
 
+import send from '@w/webviewRequest';
+
+type RecordViewData = Omit<RecordData, 'testCaseGroup'> & {
+  testcaseGroup?: RecordData['testCaseGroup'];
+  testCaseGroup?: RecordData['testCaseGroup'];
+};
+
 const { default: React } = await import('react');
 
 const context = JSON.parse(
   document.getElementById('lentille-context')!.innerText
-) as RecordData;
+) as RecordViewData;
 
 export const sortById = <T extends { id: number }>(
   values: T[] | { [id: number]: T }
@@ -24,15 +31,16 @@ export function getCompileResult(status: number, detail: RecordStatus) {
 
 export function processTestcaseData(
   { status, detail }: { status: number; detail: RecordStatus },
-  context: Pick<RecordData, 'record' | 'testCaseGroup'>
+  context: Pick<RecordViewData, 'record' | 'testcaseGroup' | 'testCaseGroup'>
 ): RecordStatus {
   const isLuoguProblem = ['P', 'B', 'T', 'U'].includes(
     context.record.problem.type
   );
   if (!isLuoguProblem || status !== 1) return detail;
 
+  const testcaseGroup = context.testcaseGroup ?? context.testCaseGroup ?? {};
   const subtasks: { [id: number]: SubtaskStatus } = Object.fromEntries(
-    Object.entries(context.testCaseGroup).map(([subtask, testcase]) => [
+    Object.entries(testcaseGroup).map(([subtask, testcase]) => [
       subtask,
       {
         id: +subtask,
@@ -107,6 +115,9 @@ export default function useRecordStatus() {
       }
     };
     window.addEventListener('message', onMessage);
+    void send('RecordReady', undefined).catch(error =>
+      console.error('启动评测记录更新失败', error)
+    );
     return () => window.removeEventListener('message', onMessage);
   }, []);
   return { ...context.record, ...recordStatus };
