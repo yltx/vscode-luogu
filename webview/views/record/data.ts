@@ -34,7 +34,7 @@ export function processTestcaseData(
   if (!isLuoguProblem || status !== 1) return detail;
 
   const subtasks: { [id: number]: SubtaskStatus } = Object.fromEntries(
-    Object.entries(context.testCaseGroup).map(([subtask, testcase]) => [
+    Object.entries(context.testCaseGroup ?? {}).map(([subtask, testcase]) => [
       subtask,
       {
         id: +subtask,
