@@ -97,18 +97,20 @@ export async function sleep(ms: number) {
 export function ProblemNameWithDifficulty({
   pid,
   title,
+  name,
   difficulty,
   contestId
 }: {
   pid: string;
-  title: string;
+  title?: string;
+  name?: string;
   difficulty: number;
   contestId?: number;
 }) {
   const item = getDifficulty(difficulty);
   return (
     <a className="problemNameWithDifficulty">
-      <span style={{ color: item.color }}>{pid}</span> {title}
+      <span style={{ color: item.color }}>{pid}</span> {title ?? name}
       {contestId && ' · ' + contestId}
     </a>
   );
