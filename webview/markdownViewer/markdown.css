@@ -21,6 +21,10 @@ pre.markdown-code .copyButton .vscode-button {
   margin: 0;
 }
 
-pre.markdown-code .copyButton .animate {
+pre.markdown-code .copyButton [data-copied='true'] {
   animation: copyButtonSuccessAnimationBegin 1s;
+}
+
+.markdown-copy-error {
+  color: var(--vscode-errorForeground);
 }

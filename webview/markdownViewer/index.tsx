@@ -1,12 +1,12 @@
-import React, { memo, useEffect, useState } from 'react';
-import { renderMarkdownTree } from '@/utils/markdown';
-import { markdownContent } from './content';
+import React, { memo, useEffect, useRef, useState } from 'react';
+import renderMarkdown from '@/utils/markdown';
+import { installCodeCopyButtons } from './codeCopy';
 import './markdown.css';
 import 'katex/dist/katex.css';
 
 type RenderState = {
   markdown: string;
-  content?: React.ReactNode;
+  html?: string;
   error?: string;
 };
 
@@ -16,12 +16,12 @@ const ArticleViewer = memo(function ArticleViewer({
   children: string;
 }) {
   const [state, setState] = useState<RenderState>();
+  const article = useRef<HTMLElement>(null);
   useEffect(() => {
     let cancelled = false;
-    renderMarkdownTree(markdown)
-      .then(tree => {
-        const content = markdownContent(tree);
-        if (!cancelled) setState({ markdown, content });
+    renderMarkdown(markdown)
+      .then(html => {
+        if (!cancelled) setState({ markdown, html });
       })
       .catch((error: unknown) => {
         if (!cancelled)
@@ -35,20 +35,29 @@ const ArticleViewer = memo(function ArticleViewer({
     };
   }, [markdown]);
 
+  useEffect(() => {
+    if (article.current && state?.markdown === markdown && !state.error)
+      return installCodeCopyButtons(article.current);
+  }, [state, markdown]);
+
   if (!state || state.markdown !== markdown)
     return (
       <article className="luogu-markdown" aria-busy="true">
         <span role="status">正在渲染……</span>
       </article>
     );
-  return (
-    <article className="luogu-markdown">
-      {state.error ? (
+  if (state.error)
+    return (
+      <article className="luogu-markdown">
         <p role="alert">渲染失败：{state.error}</p>
-      ) : (
-        state.content
-      )}
-    </article>
+      </article>
+    );
+  return (
+    <article
+      ref={article}
+      className="luogu-markdown"
+      dangerouslySetInnerHTML={{ __html: state.html ?? '' }}
+    />
   );
 });
 
