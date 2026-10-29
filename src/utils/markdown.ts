@@ -69,12 +69,32 @@ function adaptCallout(element: Element) {
   delete body.properties.style;
 }
 
+function removeAntiAiDirectives(parent: Root | Element) {
+  if (
+    parent.type === 'element' &&
+    !['blockquote', 'li', 'div'].includes(parent.tagName)
+  )
+    return;
+  // The renderer emits unsupported leaf directives as bare text with one colon.
+  // Paragraphs and code elements keep literal/escaped examples unchanged.
+  parent.children = parent.children.flatMap(child => {
+    if (child.type !== 'text') return [child];
+    const value = child.value.replace(
+      /(^|\n):anti-ai(?:\[[^\r\n]*\])?(?:\{[^\r\n]*\})?(?=\r?\n|$)/g,
+      '$1'
+    );
+    return value ? [{ ...child, value }] : [];
+  });
+}
+
 /** Adapt the renderer's sanitized output to VS Code, without parsing Markdown here. */
 export async function renderMarkdownTree(markdown: string): Promise<Root> {
   const tree = fromHtml(await renderLuoguMarkdown(markdown), {
     fragment: true
   });
   const walk = (element: Element) => {
+    if (element.tagName === 'pre' || element.tagName === 'code') return;
+    removeAntiAiDirectives(element);
     if (element.tagName === 'iframe') adaptEmbed(element);
     if (hasClass(element, 'md-block')) adaptCallout(element);
     if (
@@ -89,6 +109,7 @@ export async function renderMarkdownTree(markdown: string): Promise<Root> {
       if (child.type === 'element') walk(child);
     });
   };
+  removeAntiAiDirectives(tree);
   tree.children.forEach(child => {
     if (child.type === 'element') walk(child);
   });
