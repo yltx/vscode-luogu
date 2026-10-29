@@ -6,10 +6,12 @@ import RegisterCommands from '@/commands';
 import { getStatus, startCsrfTokenManager } from '@/utils/api';
 import path from 'path';
 import registerFeatures from './features';
+import markdownService from './utils/markdownService';
 
 globalThis.pid = '';
 
 export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push({ dispose: () => markdownService.clear() });
   globalThis.luogu.version = context.extension.packageJSON.version;
   debug('initializing luogu-vscode.');
   RegisterCommands(context);

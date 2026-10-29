@@ -1,7 +1,7 @@
 import { Problem, ProblemSetDetails, UserSummary } from 'luogu-api';
 import { searchTrainingdetail } from './api';
 import { getResourceFilePath } from './html';
-import renderMarkdown, { renderInlineMarkdown } from './markdown';
+import markdownService, { renderInlineMarkdown } from './markdownService';
 import { getDifficulty, getScoreColor } from './shared';
 import { tagManager } from './tagManager';
 import * as vscode from 'vscode';
@@ -98,7 +98,7 @@ export class TrainDetals {
     problemlist += '</div>';
     return `
     <div class="lg-article" id="description">
-    ${await renderMarkdown(this.description)}\n
+    ${await markdownService.render(this.description)}\n
     </div>
     <div hidden id="problemlist">
     ${problemlist}

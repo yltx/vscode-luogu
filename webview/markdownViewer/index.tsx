@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
-import renderMarkdown from '@/utils/markdown';
+import send from '@w/webviewRequest';
 import { installCodeCopyButtons } from './codeCopy';
 import './markdown.css';
 import 'katex/dist/katex.css';
@@ -19,7 +19,7 @@ const ArticleViewer = memo(function ArticleViewer({
   const article = useRef<HTMLElement>(null);
   useEffect(() => {
     let cancelled = false;
-    renderMarkdown(markdown)
+    (markdown ? send('RenderMarkdown', { markdown }) : Promise.resolve(''))
       .then(html => {
         if (!cancelled) setState({ markdown, html });
       })

@@ -28,7 +28,7 @@ describe('getReactWebviewHtml', () => {
 
     expect(nonce).toBeTruthy();
     expect(html).toContain(
-      `script-src vscode-webview-resource: 'nonce-${nonce}' 'wasm-unsafe-eval'; style-src vscode-webview-resource: 'unsafe-inline'`
+      `script-src vscode-webview-resource: 'nonce-${nonce}'; style-src vscode-webview-resource: 'unsafe-inline'`
     );
     expect(html).toContain(
       '<script defer nonce="' +

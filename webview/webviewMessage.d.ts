@@ -32,6 +32,10 @@ type BenbenUpdateMessageType = WebviewMessage<
   WebviewRequestMessage<'BenbenUpdate', { page: number }>,
   WebviewResponseMessage<import('@/model/benben').default[]>
 >;
+type RenderMarkdownMessageType = WebviewMessage<
+  WebviewRequestMessage<'RenderMarkdown', { markdown: string }>,
+  WebviewResponseMessage<string>
+>;
 type BenbenSendMessageType = WebviewMessage<
   WebviewRequestMessage<'BenbenSend', { comment: string }>,
   WebviewResponseMessage<void>
@@ -162,6 +166,7 @@ type OpenProblemFromListMessageType = WebviewMessage<
 type MessageTypes = MessageTypesBase<
   // Add new types in this array.
   [
+    RenderMarkdownMessageType,
     BenbenUpdateMessageType,
     BenbenSendMessageType,
     BenbenDeleteMessageType,
