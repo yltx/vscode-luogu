@@ -1,0 +1,124 @@
+/* Presentation for @luogu-saver-next/markdown-renderer in VS Code webviews. */
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
+}
+
+body:is(.vscode-dark, .vscode-high-contrast) .shiki,
+body:is(.vscode-dark, .vscode-high-contrast) .shiki span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}
+
+pre.shiki {
+  background-color: var(--vscode-textCodeBlock-background) !important;
+}
+
+pre.shiki > code {
+  background-color: transparent !important;
+}
+
+.md-align-left {
+  text-align: left;
+}
+
+.md-align-center {
+  text-align: center;
+}
+
+.md-align-right {
+  text-align: right;
+}
+
+.md-epigraph {
+  box-sizing: border-box;
+  width: 50%;
+  margin: 1em 0 1em 50%;
+}
+
+.epigraph-body > :last-child {
+  margin-bottom: 0;
+}
+
+.epigraph-author {
+  display: block;
+  margin-top: 0.25em;
+  border-top: 1px solid var(--vscode-foreground);
+  text-align: right;
+}
+
+.md-block {
+  --markdown-accent: var(--vscode-textLink-foreground);
+  margin: 1em 0;
+  padding: 0.75em 1em;
+  border: 1px solid var(--markdown-accent);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background: var(--vscode-editorWidget-background, transparent);
+}
+
+.md-block.success {
+  --markdown-accent: var(--vscode-testing-iconPassed, #2ea043);
+}
+
+.md-block.warning {
+  --markdown-accent: var(--vscode-editorWarning-foreground, #d29922);
+}
+
+.md-block.error {
+  --markdown-accent: var(--vscode-editorError-foreground, #f85149);
+}
+
+.md-block > summary {
+  cursor: pointer;
+  color: var(--markdown-accent);
+  font-weight: 600;
+}
+
+.md-block[open] > summary {
+  margin-bottom: 0.5em;
+}
+
+.md-block-body > :last-child {
+  margin-bottom: 0;
+}
+
+.cute-table th,
+.cute-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.cute-table th {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.heading-anchor {
+  margin-right: 0.25em;
+  opacity: 0;
+}
+
+:is(h1, h2, h3, h4, h5, h6):hover > .heading-anchor {
+  opacity: 1;
+}
+
+.heading-pin-icon {
+  width: 0.75em;
+  height: 0.75em;
+}
+
+@media (max-width: 480px) {
+  .md-epigraph {
+    width: 100%;
+    margin-left: 0;
+  }
+}

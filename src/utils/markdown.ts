@@ -1,43 +1,131 @@
-import MarkdownIt from 'markdown-it';
-import katex from '@vscode/markdown-it-katex';
-import markdownItHighlight from 'markdown-it-highlightjs';
+import renderLuoguMarkdown from '@luogu-saver-next/markdown-renderer';
+import { fromHtml } from 'hast-util-from-html';
+import { toHtml } from 'hast-util-to-html';
+import type { Element, Root } from 'hast';
 
-const md = MarkdownIt().use(markdownItHighlight).use(katex);
+const luoguOrigin = 'https://www.luogu.com.cn';
 
-// 将 luogu markdown 中嵌入的 bilibili 视频转换为指向视频的链接。Reference: https://www.luogu.com.cn/paste/l9faoe0v
-const defaultRender = md.renderer.rules.image,
-  aidRE = /^(([0-9]+)|(av[0-9]+))$/, // 匹配视频aid格式 允许纯数字或av+数字
-  bvidRE = /^(BV[A-Za-z0-9]{10})$/; // 匹配视频bvid格式 BV+10个大小写字母/数字
-md.renderer.rules.image = function (tokens, idx, options, env, self) {
-  if (!defaultRender) throw new Error('image renderer is not defined');
-  const token = tokens[idx],
-    aIndex = token.attrIndex('src');
-  if (!token.attrs) return defaultRender(tokens, idx, options, env, self);
-  try {
-    const url = new URL(token.attrs[aIndex][1]); // 将视频当作 url 处理
-    if (
-      url.protocol == 'bilibili:' &&
-      (aidRE.test(url.pathname) || bvidRE.test(url.pathname))
-    ) {
-      const info: { aid?: string; bvid?: string; page: number; t: number } = {
-        t: +(url.searchParams.get('t') || '0'),
-        page: +(url.searchParams.get('page') || '1')
-      }; // 若没有P号或时间标记，则默认为 0 与 1
-      if (aidRE.test(url.pathname))
-        info.aid = (url.pathname[0] != 'a' ? 'av' : '') + url.pathname; // 匹配 av 号。若匹配，将纯数字格式的 av 号开头也补上 "av"
-      if (bvidRE.test(url.pathname)) info.bvid = url.pathname; // 匹配 bv 号
-      return `
-            <a href="https://www.bilibili.com/video/${
-              info.bvid || info.aid
-            }?p=${info.page}&t=${info.t}" class="bilivideo">
-                <i class="fa-brands fa-bilibili"></i>
-                在 bilibili 中打开视频 ${info.bvid || info.aid}
-            </a>`;
+function hasClass(element: Element, name: string) {
+  const classes = element.properties.className;
+  return Array.isArray(classes)
+    ? classes.includes(name)
+    : typeof classes === 'string' && classes.split(/\s+/).includes(name);
+}
+
+function adaptEmbed(element: Element) {
+  const source = element.properties.src;
+  let href: string | undefined;
+  let label = '在浏览器中打开嵌入内容';
+  if (typeof source === 'string') {
+    try {
+      const url = new URL(source, luoguOrigin);
+      if (url.protocol === 'https:' || url.protocol === 'http:') {
+        href = url.href;
+        if (
+          url.hostname === 'player.bilibili.com' &&
+          url.pathname === '/player.html'
+        ) {
+          const bvid = url.searchParams.get('bvid');
+          const aid = url.searchParams.get('aid');
+          const videoId = bvid || (aid && `av${aid}`);
+          if (videoId) {
+            const video = new URL(
+              `/video/${encodeURIComponent(videoId)}`,
+              'https://www.bilibili.com'
+            );
+            video.searchParams.set('p', url.searchParams.get('page') || '1');
+            video.searchParams.set('t', url.searchParams.get('t') || '0');
+            href = video.href;
+            label = `在 bilibili 中打开视频 ${videoId}`;
+          }
+        }
+      }
+    } catch {
+      // Invalid embedded URLs should not prevent the rest of an article rendering.
     }
-  } catch (e) {
-    if (!(e instanceof TypeError)) throw e;
   }
-  return defaultRender(tokens, idx, options, env, self);
-};
+  element.tagName = href ? 'a' : 'span';
+  element.properties = href ? { href } : {};
+  element.children = [{ type: 'text', value: href ? label : '嵌入内容不可用' }];
+}
 
-export default md;
+function adaptCallout(element: Element) {
+  const title = element.children.find(
+    (child): child is Element =>
+      child.type === 'element' && hasClass(child, 'md-block-title')
+  );
+  const body = element.children.find(
+    (child): child is Element =>
+      child.type === 'element' && hasClass(child, 'md-block-body')
+  );
+  if (!title || !body) return;
+
+  element.tagName = 'details';
+  element.properties.open = body.properties.style !== 'display:none';
+  title.tagName = 'summary';
+  title.children = title.children.filter(
+    child => !(child.type === 'element' && hasClass(child, 'toggle-btn'))
+  );
+  delete body.properties.style;
+}
+
+function removeAntiAiDirectives(parent: Root | Element) {
+  if (
+    parent.type === 'element' &&
+    !['blockquote', 'li', 'div'].includes(parent.tagName)
+  )
+    return;
+  // The renderer emits unsupported leaf directives as bare text with one colon.
+  // Paragraphs and code elements keep literal/escaped examples unchanged.
+  parent.children = parent.children.flatMap(child => {
+    if (child.type !== 'text') return [child];
+    const value = child.value.replace(
+      /(^|\n):anti-ai(?:\[[^\r\n]*\])?(?:\{[^\r\n]*\})?(?=\r?\n|$)/g,
+      '$1'
+    );
+    return value ? [{ ...child, value }] : [];
+  });
+}
+
+/** Adapt the renderer's sanitized output to VS Code, without parsing Markdown here. */
+export async function renderMarkdownTree(markdown: string): Promise<Root> {
+  const tree = fromHtml(await renderLuoguMarkdown(markdown), {
+    fragment: true
+  });
+  const walk = (element: Element) => {
+    if (element.tagName === 'pre' || element.tagName === 'code') return;
+    removeAntiAiDirectives(element);
+    if (element.tagName === 'iframe') adaptEmbed(element);
+    if (hasClass(element, 'md-block')) adaptCallout(element);
+    if (
+      element.tagName === 'a' &&
+      typeof element.properties.href === 'string'
+    ) {
+      const href = element.properties.href;
+      if (href.startsWith('/'))
+        element.properties.href = new URL(href, luoguOrigin).href;
+    }
+    element.children.forEach(child => {
+      if (child.type === 'element') walk(child);
+    });
+  };
+  removeAntiAiDirectives(tree);
+  tree.children.forEach(child => {
+    if (child.type === 'element') walk(child);
+  });
+  return tree;
+}
+
+export default async function renderMarkdown(
+  markdown: string
+): Promise<string> {
+  return toHtml(await renderMarkdownTree(markdown));
+}
+
+export async function renderInlineMarkdown(markdown: string): Promise<string> {
+  const tree = await renderMarkdownTree(markdown);
+  tree.children = tree.children.flatMap(child =>
+    child.type === 'element' && child.tagName === 'p' ? child.children : [child]
+  );
+  return toHtml(tree);
+}

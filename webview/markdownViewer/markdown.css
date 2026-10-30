@@ -1,0 +1,30 @@
+@import '../../resources/markdown.css';
+
+pre.markdown-code {
+  min-height: 24px;
+  position: relative;
+}
+
+pre.markdown-code > .copyButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  visibility: hidden;
+}
+
+pre.markdown-code:hover > .copyButton,
+pre.markdown-code:focus-within > .copyButton {
+  visibility: visible;
+}
+
+pre.markdown-code .copyButton .vscode-button {
+  margin: 0;
+}
+
+pre.markdown-code .copyButton [data-copied='true'] {
+  animation: copyButtonSuccessAnimationBegin 1s;
+}
+
+.markdown-copy-error {
+  color: var(--vscode-errorForeground);
+}

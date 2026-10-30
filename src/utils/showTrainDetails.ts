@@ -1,7 +1,7 @@
 import { Problem, ProblemSetDetails, UserSummary } from 'luogu-api';
 import { searchTrainingdetail } from './api';
 import { getResourceFilePath } from './html';
-import md from './markdown';
+import markdownService, { renderInlineMarkdown } from './markdownService';
 import { getDifficulty, getScoreColor } from './shared';
 import { tagManager } from './tagManager';
 import * as vscode from 'vscode';
@@ -79,7 +79,7 @@ export class TrainDetals {
       problemlist += `  <tr>
     <td class="lg-number">${p['pid']}</td>
     <td class="lg-number">${getUserScoreStatus(score, 1)}</td>
-    <td class="lg-name"><a href="#" class="pid" id="${p['pid']}">${md.render(
+    <td class="lg-name"><a href="#" class="pid" id="${p['pid']}">${await renderInlineMarkdown(
       p['name'] ?? p['title'] ?? ''
     )}</a></td>
     <td>${tagsHtml}</td>
@@ -98,7 +98,7 @@ export class TrainDetals {
     problemlist += '</div>';
     return `
     <div class="lg-article" id="description">
-    ${md.render(this.description)}\n
+    ${await markdownService.render(this.description)}\n
     </div>
     <div hidden id="problemlist">
     ${problemlist}
@@ -137,10 +137,7 @@ export const generateTrainDetailsHTML = async (
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${train.title}</title>
-  <link rel="stylesheet" href="${getResourceFilePath(
-    webview,
-    'highlightjs.default.min.css'
-  )}">
+  <link rel="stylesheet" href="${getResourceFilePath(webview, 'markdown.css')}">
   <link rel="stylesheet" href="${getResourceFilePath(
     webview,
     'katex.min.css'

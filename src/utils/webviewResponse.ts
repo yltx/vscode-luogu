@@ -1,5 +1,6 @@
 import MessageTypes from '@w/webviewMessage';
 import vscode from 'vscode';
+import markdownService from './markdownService';
 
 type MaybePromise<T> = T | PromiseLike<T>;
 type Validator = (data: unknown) => boolean;
@@ -25,6 +26,7 @@ const hasShape = (value: unknown, shape: Readonly<Record<string, Validator>>) =>
   Object.entries(shape).every(([key, validate]) => validate(value[key]));
 
 const requestValidators = {
+  RenderMarkdown: (data: unknown) => hasShape(data, { markdown: isString }),
   BenbenUpdate: (data: unknown) => hasShape(data, { page: isInteger }),
   BenbenSend: (data: unknown) => hasShape(data, { comment: isString }),
   BenbenDelete: (data: unknown) => hasShape(data, { id: isInteger }),
@@ -111,7 +113,10 @@ export default function useWebviewResponseHandle<K extends keyof MessageTypes>(
 
     const type = message.type;
     const uuid = message.uuid;
-    if (!hasOwn(requestValidators, type) || !hasOwn(handles, type)) {
+    if (
+      !hasOwn(requestValidators, type) ||
+      (type !== 'RenderMarkdown' && !hasOwn(handles, type))
+    ) {
       await webview.postMessage({
         error: `Unsupported Webview message type: ${type}`,
         uuid
@@ -130,9 +135,14 @@ export default function useWebviewResponseHandle<K extends keyof MessageTypes>(
 
     try {
       await webview.postMessage({
-        data: await handles[requestType](
-          message.data as MessageTypes[K]['request']['data']
-        ),
+        data:
+          type === 'RenderMarkdown'
+            ? await markdownService.render(
+                (message.data as { markdown: string }).markdown
+              )
+            : await handles[requestType](
+                message.data as MessageTypes[K]['request']['data']
+              ),
         uuid
       } as MessageTypes[keyof MessageTypes]['response']);
     } catch (error) {

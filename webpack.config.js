@@ -61,6 +61,7 @@ function getExtensionConfig(mode) {
     entry: './src/extension.ts',
     output: {
       filename: 'extension.js',
+      chunkFilename: 'extension-[id].js',
       path: resolve('dist'),
       libraryTarget: 'commonjs2'
     },
@@ -95,6 +96,7 @@ function GetWebviewConfig(mode, entry) {
     target: ['web', 'es2020'],
     output: {
       filename: '[name].js',
+      chunkFilename: 'webview-[id].js',
       path: resolve('dist')
     },
     module: {
