@@ -638,7 +638,7 @@
     "axios": "1.20.0",
     "hast-util-from-html": "^2.0.2",
     "hast-util-to-html": "^9.0.5",
-    "katex": "^0.16.22",
+    "katex": "^0.18.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ws": "8.21.1"
