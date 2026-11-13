@@ -58,7 +58,7 @@ export namespace API {
   export const LOGOUT = `/auth/logout`;
   export const FATE = `/index/ajax_punch`;
   export const FOLLOWED_BENBEN = (page: number) =>
-    `${apiURL}/feed/watching?page=${page}`;
+    `/feed/watching?page=${page}`;
   export const USER_BENBEN = (page: number, user?: number) =>
     `${apiURL}/feed/list?page=${page}&user=${user !== undefined ? user : ''}`;
   export const BenbenReferer = 'https://www.luogu.com.cn/';
@@ -603,10 +603,7 @@ export const searchUser = async (keyword: string, cookie?: Cookie) =>
 
 export const fetchFollowedBenben = async (page: number) =>
   axios
-    .get<{
-      status: number;
-      data: ActivityData[];
-    }>(API.FOLLOWED_BENBEN(page))
+    .get<string>(API.FOLLOWED_BENBEN(page), { responseType: 'text' })
     .then(data => data.data);
 
 export const fetchUserBenben = async (page: number, user?: number) =>
