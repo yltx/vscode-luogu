@@ -1,4 +1,11 @@
+html,
 body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
   padding: 0;
 }
 
@@ -16,6 +23,7 @@ body {
 
 .solution-scroll {
   flex: 1;
+  min-height: 0;
   overflow: auto;
   padding: 20px clamp(12px, 4vw, 34px) 32px;
 }
@@ -97,6 +105,7 @@ body {
 }
 
 .solution-controls {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: minmax(90px, 1fr) auto auto;
   gap: 12px;
